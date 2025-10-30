@@ -25,29 +25,28 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
-
     private final AuthService authService;
-    private final JwtUtil jwtUtil;
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest req) {
-
-        return authService.signUp(req);
+    @PostMapping("/signup-request")
+    public ResponseEntity<?> signupRequest(@Valid @RequestBody SignupRequest req) {
+        System.out.println(req);
+        // Step 1: Temporarily store signup data & send OTP
+        return authService.requestSignupOtp(req);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
-        return authService.login(req);
+    @PostMapping("/signup-verify")
+    public ResponseEntity<?> signupVerify(@RequestBody Map<String, String> body) {
+        // Step 2: Verify OTP and create user
+        return authService.verifySignupOtp(body.get("phoneNumber"), body.get("otp"));
     }
 
-    @PostMapping("/request-otp")
-    public ResponseEntity<Map <String, String>> requestOtp(@RequestBody Map<String, String> body) {
-
-        return authService.requestOtp(body.get("phoneNumber"));
+    @PostMapping("/login-request")
+    public ResponseEntity<?> loginRequest(@RequestBody Map<String, String> body) {
+        return authService.requestLoginOtp(body.get("phoneNumber"));
     }
 
-    @PostMapping("/verify-otp")
-    public ResponseEntity<Map<String, String>> verifyOtp(@RequestBody Map<String, String> body) {
-        return authService.verifyOtp(body.get("phoneNumber"), body.get("otp"));
+    @PostMapping("/login-verify")
+    public ResponseEntity<?> loginVerify(@RequestBody Map<String, String> body) {
+        return authService.verifyLoginOtp(body.get("phoneNumber"), body.get("otp"));
     }
 }

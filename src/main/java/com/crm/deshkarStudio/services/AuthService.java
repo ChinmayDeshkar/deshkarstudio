@@ -8,8 +8,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.Map;
 
 public interface AuthService {
-    ResponseEntity<?> signUp(SignupRequest req);
-    ResponseEntity<?> login(LoginRequest req);
-    ResponseEntity<Map<String, String>> requestOtp(String phoneNumber);
-    ResponseEntity<Map<String, String>> verifyOtp(String phoneNumber, String otp);
+
+
+    // STEP 1: Request OTP for signup
+    public ResponseEntity<?> requestSignupOtp(SignupRequest req) ;
+
+    // STEP 2: Verify OTP & register
+    public ResponseEntity<?> verifySignupOtp(String phone, String otp) ;
+
+    // LOGIN OTP FLOW
+    public ResponseEntity<?> requestLoginOtp(String phone) ;
+
+    public ResponseEntity<?> verifyLoginOtp(String phone, String otp) ;
 }
