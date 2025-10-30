@@ -10,6 +10,7 @@ import com.crm.deshkarStudio.services.AuthService;
 import com.crm.deshkarStudio.services.JwtUtil;
 import com.crm.deshkarStudio.services.OtpService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,77 +19,76 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final AuthenticationManager authManager;
     private final UserRepo userRepo;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
     private final OtpService otpService;
+    private final JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    @Override
-    public ResponseEntity<?> signUp(SignupRequest req) {
+    private final Map<String, SignupRequest> pendingSignup = new HashMap<>();
 
-        // check unique constraints
-        if (userRepo.existsByUsername(req.username())) return ResponseEntity.badRequest().body("Username already taken");
-        if (userRepo.existsByEmail(req.email())) return ResponseEntity.badRequest().body("Email already taken");
-        if (userRepo.existsByPhone(req.phone())) return ResponseEntity.badRequest().body("Phone already taken");
-
-        var user = new User();
-        user.setUsername(req.username());
-        user.setPassword(passwordEncoder.encode(req.password()));
-        user.setEmail(req.email());
-        user.setPhone(req.phone());
-        // map role string to Role enum
-        Role role;
-        try {
-            role = switch(req.role().toUpperCase()) {
-                case "ADMIN" -> Role.ROLE_ADMIN;
-                case "EMPLOYEE" -> Role.ROLE_EMPLOYEE;
-                default -> Role.ROLE_USER;
-            };
-        } catch (Exception e) {
-            role = Role.ROLE_USER;
+    // STEP 1: Request OTP for signup
+    public ResponseEntity<?> requestSignupOtp(SignupRequest req) {
+        System.out.println(req);
+        if (userRepo.existsByPhone(req.phone())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Phone already registered"));
         }
-        user.setRole(role);
-
-        userRepo.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body("User created");
-    }
-
-    @Override
-    public ResponseEntity<?> login(LoginRequest req) {
-        try {
-            var authToken = new UsernamePasswordAuthenticationToken(req.username(), req.password());
-            authManager.authenticate(authToken);
-            // If no exception, user is authenticated — load user to get role
-            var user = userRepo.findByUsername(req.username()).orElseThrow();
-            String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name().replace("ROLE_",""));
-            return ResponseEntity.ok(new JwtResponse(token, "Bearer", user.getUsername(), user.getRole().name()));
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        }
-    }
-
-    @Override
-    public ResponseEntity<Map<String, String>> requestOtp(String phoneNumber) {
-        otpService.sendOtp(phoneNumber);
+        otpService.sendOtp(req.phone());
+        pendingSignup.put(req.phone(), req);
         return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
     }
 
-    @Override
-    public ResponseEntity<Map<String, String>> verifyOtp(String phoneNumber, String otp) {
-
-        boolean verified = otpService.verifyOtp(phoneNumber,otp);
-        if (verified) {
-            User user = userRepo.findByPhone(phoneNumber).orElseThrow(() -> new RuntimeException("Phone number not exists"));
-            String token = jwtUtil.generateToken(phoneNumber, user.getRole().toString());
-            return ResponseEntity.ok(Map.of("token", token));
+    // STEP 2: Verify OTP & register
+    public ResponseEntity<?> verifySignupOtp(String phone, String otp) {
+        if (!otpService.verifyOtp(phone, otp)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid OTP"));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid OTP"));
+
+        SignupRequest req = pendingSignup.get(phone);
+        if (req == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No signup data found"));
+        }
+
+        User user = new User();
+        user.setUsername(req.username());
+        user.setPhone(req.phone());
+        user.setEmail(req.email());
+        user.setPassword(encoder.encode(req.password()));
+        user.setRole(Role.ROLE_USER);
+
+        userRepo.save(user);
+        pendingSignup.remove(phone);
+
+        return ResponseEntity.ok(Map.of("message", "Signup successful"));
+    }
+
+    // LOGIN OTP FLOW
+    public ResponseEntity<?> requestLoginOtp(String phone) {
+        if (!userRepo.existsByPhone(phone)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+        }
+        otpService.sendOtp(phone);
+        return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
+    }
+
+    public ResponseEntity<?> verifyLoginOtp(String phone, String otp) {
+        if (!otpService.verifyOtp(phone, otp)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid OTP"));
+        }
+
+        User user = userRepo.findByPhone(phone).orElseThrow();
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        return ResponseEntity.ok(Map.of(
+                "message", "Login successful",
+                "accessToken", token,
+                "role", user.getRole().name()
+        ));
     }
 }
