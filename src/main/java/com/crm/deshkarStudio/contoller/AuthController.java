@@ -3,6 +3,7 @@ package com.crm.deshkarStudio.contoller;
 
 import com.crm.deshkarStudio.dto.JwtResponse;
 import com.crm.deshkarStudio.dto.LoginRequest;
+import com.crm.deshkarStudio.dto.ResetPassword;
 import com.crm.deshkarStudio.dto.SignupRequest;
 import com.crm.deshkarStudio.model.Role;
 import com.crm.deshkarStudio.model.User;
@@ -18,6 +19,7 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -27,26 +29,31 @@ import java.util.Map;
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/signup-request")
-    public ResponseEntity<?> signupRequest(@Valid @RequestBody SignupRequest req) {
-        System.out.println(req);
-        // Step 1: Temporarily store signup data & send OTP
-        return authService.requestSignupOtp(req);
+    @PostMapping("/login")
+    public  ResponseEntity<?> login(@RequestBody LoginRequest req){
+        log.info(req.toString());
+        return authService.login(req);
     }
 
-    @PostMapping("/signup-verify")
-    public ResponseEntity<?> signupVerify(@RequestBody Map<String, String> body) {
-        // Step 2: Verify OTP and create user
-        return authService.verifySignupOtp(body.get("phoneNumber"), body.get("otp"));
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody User user){
+        log.info("User: " + user.toString());
+        return authService.signup(user);
     }
 
-    @PostMapping("/login-request")
-    public ResponseEntity<?> loginRequest(@RequestBody Map<String, String> body) {
-        return authService.requestLoginOtp(body.get("phoneNumber"));
+    @PostMapping("/first-login")
+    public ResponseEntity<?> firstLogin(@RequestBody ResetPassword req){
+        return authService.firstLogin(req);
     }
 
-    @PostMapping("/login-verify")
-    public ResponseEntity<?> loginVerify(@RequestBody Map<String, String> body) {
-        return authService.verifyLoginOtp(body.get("phoneNumber"), body.get("otp"));
+    @PostMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@RequestBody Map<String, String> map){
+        String token = map.get("token");
+        System.out.println("Token in Controller: " + map.get("token"));
+        System.out.println(token.getClass());
+        boolean isValid = authService.validateToken(token);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("isValid", isValid));
+
+
     }
 }

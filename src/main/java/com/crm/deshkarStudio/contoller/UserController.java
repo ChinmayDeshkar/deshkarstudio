@@ -6,6 +6,7 @@ import com.crm.deshkarStudio.services.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,16 +24,11 @@ public class UserController {
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
         String token = extractToken(request);
+        log.info("Token: " + token);
         String username = jwtUtil.getUsernameFromToken(token);
+        User user = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("Error while collecting profile details"));
 
-        return userRepo.findByUsername(username)
-                .map(user -> ResponseEntity.ok(Map.of(
-                        "username", user.getUsername(),
-                        "email", user.getEmail(),
-                        "phone", user.getPhone(),
-                        "role", user.getRole().name()
-                )))
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("User",user));
     }
 
     @PutMapping("/profile")
@@ -54,4 +50,5 @@ public class UserController {
         String header = request.getHeader("Authorization");
         return (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
     }
+
 }

@@ -8,11 +8,13 @@ import com.crm.deshkarStudio.repo.CustomerRepo;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -103,10 +105,24 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     public List<PurchaseDTO> getTodayPurchases() {
-        return purchaseRepo.findByCreatedDate(LocalDate.now())
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        log.info("Fetching purchases between {} and {}", startOfDay, endOfDay);
+
+        return purchaseRepo.findByCreatedDateBetween(startOfDay, endOfDay)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+
+
+//        log.info("Checking for datetime - " + LocalDateTime.now());
+//        return purchaseRepo.findByCreatedDate(LocalDateTime.now())
+//                .stream()
+//                .map(this::mapToDTO)
+//                .collect(Collectors.toList());
     }
 
     public List<PurchaseDTO> getPurchasesThisMonth() {
@@ -116,8 +132,10 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .collect(Collectors.toList());
     }
 
-    public List<PurchaseDTO> getPurchasesByRange(LocalDate start, LocalDate end) {
-        return purchaseRepo.findByDateRange(start, end)
+    public List<PurchaseDTO> getPurchasesByRange(LocalDateTime startDate, LocalDateTime endDate) {
+        log.info("Fetching purchases from {} to {}", startDate, endDate);
+
+        return purchaseRepo.findByCreatedDateBetween(startDate, endDate)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

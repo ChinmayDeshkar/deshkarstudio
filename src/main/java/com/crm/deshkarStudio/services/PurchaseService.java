@@ -5,6 +5,7 @@ import com.crm.deshkarStudio.model.CustomerPurchases;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -24,5 +25,5 @@ public interface PurchaseService {
 
     public List<PurchaseDTO> getPurchasesThisMonth() ;
 
-    public List<PurchaseDTO> getPurchasesByRange(LocalDate start, LocalDate end) ;
+    public List<PurchaseDTO> getPurchasesByRange(LocalDateTime start, LocalDateTime end) ;
 }

@@ -1,11 +1,11 @@
 package com.crm.deshkarStudio.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -18,12 +18,19 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class User {
     @Id
     private String id = UUID.randomUUID().toString();
 
     @Column(nullable = false, length = 50)
     private String username;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
 
     @Column(nullable = false)
     private String password; // stored hashed
@@ -37,4 +44,13 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @NotNull
+    private String salary;
+    private boolean isActive = true;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime dte_created = LocalDateTime.now();
+
+    private boolean firstLogin = true;
+
 }

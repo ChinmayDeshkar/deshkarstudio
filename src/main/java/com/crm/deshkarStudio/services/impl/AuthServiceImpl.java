@@ -2,6 +2,7 @@ package com.crm.deshkarStudio.services.impl;
 
 import com.crm.deshkarStudio.dto.JwtResponse;
 import com.crm.deshkarStudio.dto.LoginRequest;
+import com.crm.deshkarStudio.dto.ResetPassword;
 import com.crm.deshkarStudio.dto.SignupRequest;
 import com.crm.deshkarStudio.model.Role;
 import com.crm.deshkarStudio.model.User;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,63 +34,100 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    private final Map<String, SignupRequest> pendingSignup = new HashMap<>();
+    @Override
+    public ResponseEntity<?> login(LoginRequest req) {
+        User user = userRepo.findByUsername(req.username())
+                .orElse(null);
 
-    // STEP 1: Request OTP for signup
-    public ResponseEntity<?> requestSignupOtp(SignupRequest req) {
-        System.out.println(req);
-        if (userRepo.existsByPhone(req.phone())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Phone already registered"));
+
+        if(user == null)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("Error", "UserNotFound",
+                                                                                "Message", "User not found with username " + req.username()));
+
+        if(!user.isActive())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("Error", "User is inactive",
+                    "Message", "User is inactive " + req.username()));
+
+        System.out.println("from req " + encoder.encode(req.password()));
+        System.out.println("from user  " + encoder.matches(req.password(), user.getPassword()));
+        if(encoder.matches(req.password(), user.getPassword())){
+            log.info("coming here.......");
+            String authToken = jwtUtil.generateToken(req.username(), user.getRole().toString());
+            System.out.println("Logged in " + authToken);
+            if (user.isFirstLogin()) return ResponseEntity.status(HttpStatus.OK).body(Map.of("Message", "First Login detected, Please reset Password"));
+
+            log.info(user.getRole().toString());
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("Message", "User logged in successfully",
+                                                                        "AuthToken", authToken,
+                                                                        "Role", user.getRole(),
+                                                                        "Username", user.getUsername()));
         }
-        otpService.sendOtp(req.phone());
-        pendingSignup.put(req.phone(), req);
-        return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
+
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("Error", "Error while logging in"));
     }
 
-    // STEP 2: Verify OTP & register
-    public ResponseEntity<?> verifySignupOtp(String phone, String otp) {
-        if (!otpService.verifyOtp(phone, otp)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid OTP"));
-        }
+    @Override
+    public ResponseEntity<?> signup(User newUser) {
+        // Check if username presents
+        if(userRepo.existsByUsername(newUser.getUsername()))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("Message: ", "User already present"));
 
-        SignupRequest req = pendingSignup.get(phone);
-        if (req == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No signup data found"));
-        }
+        // Check if phone number present
+        if(userRepo.existsByPhone(newUser.getPhone()))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("Message: ", "Phone number already present"));
 
-        User user = new User();
-        user.setUsername(req.username());
-        user.setPhone(req.phone());
-        user.setEmail(req.email());
-        user.setPassword(encoder.encode(req.password()));
-        user.setRole(Role.ROLE_USER);
+        if (userRepo.existsByEmail(newUser.getEmail()))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("Message: ", "Email id already present"));
+
+//        User user = new User();
+//        user.setPassword(newUser.getPassword());
+//        user.setPhone(newUser.getPhone());
+//        user.setSalary(newUser.getSalary());
+//        user.setEmail(newUser.getEmail());
+//        user.setRole(Role.ROLE_EMPLOYEE);
+//        user.setPassword(encoder.encode(newUser.getPassword()));
+//        int userCount = userRepo.findAll().size();
+//        String userId = String.format("d%04d", userCount + 1);
+//
+//        System.out.println("Generated User ID: " + userId);
+//        user.setUsername(userId);
+
+        User user = newUser;
+        user.setRole(Role.ROLE_EMPLOYEE);
+        user.setPassword(encoder.encode(newUser.getPassword()));
+        int userCount = userRepo.findAll().size();
+        String userId = String.format("d%04d", userCount + 1);
+
+        System.out.println("Generated User ID: " + userId);
+        user.setUsername(userId);
+
+        log.info(user.toString());
 
         userRepo.save(user);
-        pendingSignup.remove(phone);
-
-        return ResponseEntity.ok(Map.of("message", "Signup successful"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Message: ", "User Created",
+                                                                        "Username: ", user.getUsername()));
     }
 
-    // LOGIN OTP FLOW
-    public ResponseEntity<?> requestLoginOtp(String phone) {
-        if (!userRepo.existsByPhone(phone)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
-        }
-        otpService.sendOtp(phone);
-        return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
+    @Override
+    public ResponseEntity<?> firstLogin(ResetPassword req){
+        var u = userRepo.findByUsername(req.getUsername());
+        if(u.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("Message","User not found"));
+        User user = u.get();
+        if(!encoder.matches(req.getOldPassword(), user.getPassword()))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("Message","Incorrect old password"));
+        user.setPassword(encoder.encode(req.getNewPassword()));
+        user.setFirstLogin(false);
+        userRepo.save(user);
+        return ResponseEntity.ok(Map.of("Message","Password reset successful"));
     }
 
-    public ResponseEntity<?> verifyLoginOtp(String phone, String otp) {
-        if (!otpService.verifyOtp(phone, otp)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid OTP"));
-        }
-
-        User user = userRepo.findByPhone(phone).orElseThrow();
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
-        return ResponseEntity.ok(Map.of(
-                "message", "Login successful",
-                "accessToken", token,
-                "role", user.getRole().name()
-        ));
+    @Override
+    public Boolean validateToken(String token) {
+        log.info("Token to be validate: " + token);
+        boolean isValid = false;
+        if(jwtUtil.validateToken(token))
+            isValid = true;
+        return isValid;
     }
 }

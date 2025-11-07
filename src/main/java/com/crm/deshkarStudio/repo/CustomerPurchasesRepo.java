@@ -11,10 +11,11 @@ import java.util.List;
 
 @Repository
 public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, String> {
-    List<CustomerPurchases> findByCreatedDate(LocalDate date);
+    List<CustomerPurchases> findByCreatedDate(LocalDateTime date);
+    List<CustomerPurchases> findByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT p FROM CustomerPurchases p WHERE p.createdDate BETWEEN :start AND :end")
-    List<CustomerPurchases> findByDateRange(LocalDate start, LocalDate end);
+    List<CustomerPurchases> findByDateRange(LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT p FROM CustomerPurchases p WHERE MONTH(p.createdDate) = MONTH(CURRENT_DATE) AND YEAR(p.createdDate) = YEAR(CURRENT_DATE)")
     List<CustomerPurchases> findPurchasesThisMonth();

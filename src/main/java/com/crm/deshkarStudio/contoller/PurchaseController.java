@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -27,31 +29,6 @@ public class PurchaseController {
         return purchaseService.addPurchase(body);
     }
 
-//    /** ✅ Purchases made today */
-//    @GetMapping("/today")
-//    public ResponseEntity<List<CustomerPurchases>> getTodayPurchases() {
-//
-//        List<CustomerPurchases> purchases = purchaseService.getTodayPurchases();
-//        return ResponseEntity.ok(purchases);
-//    }
-//
-//    /** ✅ Purchases for current month */
-//    @GetMapping("/month")
-//    public ResponseEntity<List<CustomerPurchases>> getMonthlyPurchases() {
-//        List<CustomerPurchases> purchases = purchaseService.getMonthlyPurchases();
-//        return ResponseEntity.ok(purchases);
-//    }
-//
-//    /** ✅ Purchases between selected dates (inclusive) */
-//    @GetMapping("/range")
-//    public ResponseEntity<List<CustomerPurchases>> getPurchasesByDateRange(
-//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-//        List<CustomerPurchases> purchases = purchaseService.getPurchasesByDateRange(startDate, endDate);
-//        return ResponseEntity.ok(purchases);
-//    }
-
-
     @GetMapping("/today")
     public ResponseEntity<List<PurchaseDTO>> getTodayPurchases() {
         return ResponseEntity.ok(purchaseService.getTodayPurchases());
@@ -67,7 +44,8 @@ public class PurchaseController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
-        return ResponseEntity.ok(purchaseService.getPurchasesByRange(startDate, endDate));
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(LocalTime.MAX);
+        return ResponseEntity.ok(purchaseService.getPurchasesByRange(start, end));
     }
-
 }
