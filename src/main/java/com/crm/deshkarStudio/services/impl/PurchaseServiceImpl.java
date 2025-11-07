@@ -1,6 +1,7 @@
 package com.crm.deshkarStudio.services.impl;
 
 import com.crm.deshkarStudio.dto.PurchaseDTO;
+import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.model.Customer;
 import com.crm.deshkarStudio.model.CustomerPurchases;
 import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -66,30 +68,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         return ResponseEntity.ok(Map.of("message", "Purchase added successfully", "customerId", customer.getId()));
     }
 
-//    /** ✅ Purchases made today */
-//    public List<CustomerPurchases> getTodayPurchases() {
-//        LocalDate today = LocalDate.now();
-//        LocalDateTime startOfDay = today.atStartOfDay();
-//        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
-//        return purchaseRepo.findByCreatedDateBetween(startOfDay, endOfDay);
-//    }
-//
-//    /** ✅ Purchases made this month */
-//    public List<CustomerPurchases> getMonthlyPurchases() {
-//        LocalDate today = LocalDate.now();
-//        LocalDate firstDay = today.withDayOfMonth(1);
-//        LocalDate lastDay = today.withDayOfMonth(today.lengthOfMonth());
-//        log.info("Last Date: " + lastDay.plusDays(1).atStartOfDay());
-//        log.info("firstDay Date: " + firstDay.atStartOfDay());
-//        return purchaseRepo.findByCreatedDateBetween(firstDay.atStartOfDay(), lastDay.plusDays(1).atStartOfDay());
-//    }
-//
-//    /** ✅ Purchases in a specific date range */
-//    public List<CustomerPurchases> getPurchasesByDateRange(LocalDate startDate, LocalDate endDate) {
-//        return purchaseRepo.findByCreatedDateBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
-//    }
-
-
     private PurchaseDTO mapToDTO(CustomerPurchases p) {
         return new PurchaseDTO(
                 p.getPurchaseId(),
@@ -116,13 +94,6 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
-
-
-//        log.info("Checking for datetime - " + LocalDateTime.now());
-//        return purchaseRepo.findByCreatedDate(LocalDateTime.now())
-//                .stream()
-//                .map(this::mapToDTO)
-//                .collect(Collectors.toList());
     }
 
     public List<PurchaseDTO> getPurchasesThisMonth() {
@@ -140,4 +111,60 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<RevenueDTO> getRevenuePerDay() {
+        return mapResult(purchaseRepo.getRevenuePerDay(), "day");
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenuePerMonth() {
+        return mapResult(purchaseRepo.getRevenuePerMonth(), "month");
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenuePerYear() {
+        return mapResult(purchaseRepo.getRevenuePerYear(), "year");
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByRange(LocalDateTime start, LocalDateTime end) {
+        return mapResult(purchaseRepo.getRevenueBetween(start, end), "day");
+    }
+
+    @Override
+    public List<RevenueDTO> getTransactionCountByPaymentMethod() {
+        List<RevenueDTO> list = new ArrayList<>();
+        for (Object[] obj : purchaseRepo.getTransactionCountByPaymentMethod()) {
+            String method = (String) obj[0];
+            long count = ((Number) obj[1]).longValue();
+            list.add(new RevenueDTO(method, 0, 0));
+        }
+        return list;
+    }
+
+    private List<RevenueDTO> mapResult(List<Object[]> results, String type) {
+        List<RevenueDTO> list = new ArrayList<>();
+        for (Object[] obj : results) {
+            String label;
+
+            if (type.equals("month")) {
+                // For monthly query: obj[0] = month, obj[1] = year
+                label = obj[1] + "-" + obj[0];
+            } else if (type.equals("year")) {
+                label = obj[0].toString();
+            } else {
+                label = obj[0].toString();
+            }
+
+            // ✅ Correct index usage
+            double income = obj[1] != null ? ((Number) obj[1]).doubleValue() : 0;
+            double balance = obj[2] != null ? ((Number) obj[2]).doubleValue() : 0;
+            long count = obj[3] != null ? ((Number) obj[3]).longValue() : 0;
+
+            list.add(new RevenueDTO(label, income, balance));
+        }
+        return list;
+    }
+
 }

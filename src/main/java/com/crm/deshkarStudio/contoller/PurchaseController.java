@@ -1,6 +1,7 @@
 package com.crm.deshkarStudio.contoller;
 
 import com.crm.deshkarStudio.dto.PurchaseDTO;
+import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
@@ -47,5 +48,33 @@ public class PurchaseController {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(LocalTime.MAX);
         return ResponseEntity.ok(purchaseService.getPurchasesByRange(start, end));
+    }
+
+    @GetMapping("/revenue-past-seven")
+    public List<RevenueDTO> getRevenuePerDay() {
+        return purchaseService.getRevenuePerDay();
+    }
+
+    @GetMapping("/revenue-month")
+    public List<RevenueDTO> getRevenuePerMonth() {
+        return purchaseService.getRevenuePerMonth();
+    }
+
+    @GetMapping("/revenue-year")
+    public List<RevenueDTO> getRevenuePerYear() {
+        return purchaseService.getRevenuePerYear();
+    }
+
+    @GetMapping("/revenue-range")
+    public List<RevenueDTO> getRevenueByRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+    ) {
+        return purchaseService.getRevenueByRange(start, end);
+    }
+
+    @GetMapping("/revenue-payment-method")
+    public List<RevenueDTO> getTransactionCountByPaymentMethod() {
+        return purchaseService.getTransactionCountByPaymentMethod();
     }
 }
