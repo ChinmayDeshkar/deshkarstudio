@@ -1,7 +1,10 @@
 package com.crm.deshkarStudio.contoller;
 
 import com.crm.deshkarStudio.dto.PurchaseDTO;
+import com.crm.deshkarStudio.dto.RevenueDTO;
+import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
+import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,45 +26,21 @@ import java.util.Map;
 public class PurchaseController {
 
     private final PurchaseService purchaseService;
+    private final CustomerPurchasesRepo purchaseRepo;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addPurchase(@RequestBody Map<String, Object> body) {
-        log.info("Request Body: "+ body);
-        return purchaseService.addPurchase(body);
+    public ResponseEntity<?> addPurchase(@RequestBody CustomerPurchases purchase) {
+        log.info("Request Body: "+ purchase.toString());
+        return purchaseService.addPurchase(purchase);
     }
 
-//    /** ✅ Purchases made today */
-//    @GetMapping("/today")
-//    public ResponseEntity<List<CustomerPurchases>> getTodayPurchases() {
-//
-//        List<CustomerPurchases> purchases = purchaseService.getTodayPurchases();
-//        return ResponseEntity.ok(purchases);
-//    }
-//
-//    /** ✅ Purchases for current month */
-//    @GetMapping("/month")
-//    public ResponseEntity<List<CustomerPurchases>> getMonthlyPurchases() {
-//        List<CustomerPurchases> purchases = purchaseService.getMonthlyPurchases();
-//        return ResponseEntity.ok(purchases);
-//    }
-//
-//    /** ✅ Purchases between selected dates (inclusive) */
-//    @GetMapping("/range")
-//    public ResponseEntity<List<CustomerPurchases>> getPurchasesByDateRange(
-//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-//        List<CustomerPurchases> purchases = purchaseService.getPurchasesByDateRange(startDate, endDate);
-//        return ResponseEntity.ok(purchases);
-//    }
-
-
     @GetMapping("/today")
-    public ResponseEntity<List<PurchaseDTO>> getTodayPurchases() {
+    public ResponseEntity<List<CustomerPurchases>> getTodayPurchases() {
         return ResponseEntity.ok(purchaseService.getTodayPurchases());
     }
 
     @GetMapping("/month")
-    public ResponseEntity<List<PurchaseDTO>> getThisMonthPurchases() {
+    public ResponseEntity<List<CustomerPurchases>> getThisMonthPurchases() {
         return ResponseEntity.ok(purchaseService.getPurchasesThisMonth());
     }
 
@@ -67,7 +49,60 @@ public class PurchaseController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
-        return ResponseEntity.ok(purchaseService.getPurchasesByRange(startDate, endDate));
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(LocalTime.MAX);
+        return ResponseEntity.ok(purchaseService.getPurchasesByRange(start, end));
     }
 
+    @GetMapping("/revenue-past-seven")
+    public List<RevenueDTO> getRevenuePerDay() {
+        return purchaseService.getRevenuePerDay();
+    }
+
+    @GetMapping("/revenue-month")
+    public List<RevenueDTO> getRevenuePerMonth() {
+        return purchaseService.getRevenuePerMonth();
+    }
+
+    @GetMapping("/revenue-year")
+    public List<RevenueDTO> getRevenuePerYear() {
+        return purchaseService.getRevenuePerYear();
+    }
+
+    @GetMapping("/revenue-range")
+    public List<RevenueDTO> getRevenueByRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+    ) {
+        return purchaseService.getRevenueByRange(start, end);
+    }
+
+    @GetMapping("/revenue-payment-method")
+    public List<RevenueDTO> getTransactionCountByPaymentMethod() {
+        return purchaseService.getTransactionCountByPaymentMethod();
+    }
+
+    @GetMapping("/pending-tasks")
+    public ResponseEntity<?> getPendingTasks() {
+        List<TaskDTO> pendingTasks = purchaseService.getPendingTasks();
+        return ResponseEntity.ok(pendingTasks);
+    }
+
+    @GetMapping("/recent-tasks")
+    public List<CustomerPurchases> getRecentTasks() {
+        return purchaseService.getRecentTasks();
+    }
+
+    @PutMapping("/update-order-status/{purchaseId}")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable long purchaseId, @RequestBody String updatedOrderStatus){
+        purchaseService.updateOrderStatus(purchaseId, updatedOrderStatus);
+        return ResponseEntity.ok(Map.of("Message", "Order status updated"));
+    }
+
+    @PutMapping("/update-payment-status/{purchaseId}")
+    public ResponseEntity<?> updatePaymentStatus(@PathVariable long purchaseId, @RequestBody String updatedPaymentStatus){
+        log.info(purchaseId + ": " + updatedPaymentStatus);
+        purchaseService.updatePaymentStatus(purchaseId, updatedPaymentStatus);
+        return ResponseEntity.ok(Map.of("Message", "Payment Status updated"));
+    }
 }

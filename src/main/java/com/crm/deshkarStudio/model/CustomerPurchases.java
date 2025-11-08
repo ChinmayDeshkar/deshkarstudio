@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Table(name = "customer_purchases")
 public class CustomerPurchases {
 
@@ -29,6 +30,8 @@ public class CustomerPurchases {
     private double price;
     private String paymentMethod;
     private String paymentStatus;
+    private String orderStatus;
+    private double advancePaid;
     private double balance;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime createdDate = LocalDateTime.now();
