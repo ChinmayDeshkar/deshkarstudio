@@ -2,6 +2,7 @@ package com.crm.deshkarStudio.services;
 
 import com.crm.deshkarStudio.dto.PurchaseDTO;
 import com.crm.deshkarStudio.dto.RevenueDTO;
+import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
 import org.springframework.http.ResponseEntity;
 
@@ -13,11 +14,11 @@ import java.util.Map;
 
 public interface PurchaseService {
 
-    ResponseEntity<?> addPurchase(Map<String, Object> payload);
+    ResponseEntity<?> addPurchase(CustomerPurchases purchase);
 
-    List<PurchaseDTO> getTodayPurchases() ;
+    List<CustomerPurchases> getTodayPurchases() ;
 
-    List<PurchaseDTO> getPurchasesThisMonth() ;
+    List<CustomerPurchases> getPurchasesThisMonth() ;
 
     List<PurchaseDTO> getPurchasesByRange(LocalDateTime start, LocalDateTime end) ;
 
@@ -30,4 +31,12 @@ public interface PurchaseService {
     public List<RevenueDTO> getRevenueByRange(LocalDateTime start, LocalDateTime end);
 
     public List<RevenueDTO> getTransactionCountByPaymentMethod();
+
+    List<TaskDTO> getPendingTasks();
+
+    List<CustomerPurchases> getRecentTasks();
+
+    CustomerPurchases updateOrderStatus(long purchaseId, String updatedOrderStatus);
+
+    CustomerPurchases updatePaymentStatus(long purchaseId, String updatedPaymentStatus);
 }

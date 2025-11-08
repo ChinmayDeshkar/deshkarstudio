@@ -2,7 +2,9 @@ package com.crm.deshkarStudio.contoller;
 
 import com.crm.deshkarStudio.dto.PurchaseDTO;
 import com.crm.deshkarStudio.dto.RevenueDTO;
+import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
+import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,20 +26,21 @@ import java.util.Map;
 public class PurchaseController {
 
     private final PurchaseService purchaseService;
+    private final CustomerPurchasesRepo purchaseRepo;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addPurchase(@RequestBody Map<String, Object> body) {
-        log.info("Request Body: "+ body);
-        return purchaseService.addPurchase(body);
+    public ResponseEntity<?> addPurchase(@RequestBody CustomerPurchases purchase) {
+        log.info("Request Body: "+ purchase.toString());
+        return purchaseService.addPurchase(purchase);
     }
 
     @GetMapping("/today")
-    public ResponseEntity<List<PurchaseDTO>> getTodayPurchases() {
+    public ResponseEntity<List<CustomerPurchases>> getTodayPurchases() {
         return ResponseEntity.ok(purchaseService.getTodayPurchases());
     }
 
     @GetMapping("/month")
-    public ResponseEntity<List<PurchaseDTO>> getThisMonthPurchases() {
+    public ResponseEntity<List<CustomerPurchases>> getThisMonthPurchases() {
         return ResponseEntity.ok(purchaseService.getPurchasesThisMonth());
     }
 
@@ -76,5 +80,29 @@ public class PurchaseController {
     @GetMapping("/revenue-payment-method")
     public List<RevenueDTO> getTransactionCountByPaymentMethod() {
         return purchaseService.getTransactionCountByPaymentMethod();
+    }
+
+    @GetMapping("/pending-tasks")
+    public ResponseEntity<?> getPendingTasks() {
+        List<TaskDTO> pendingTasks = purchaseService.getPendingTasks();
+        return ResponseEntity.ok(pendingTasks);
+    }
+
+    @GetMapping("/recent-tasks")
+    public List<CustomerPurchases> getRecentTasks() {
+        return purchaseService.getRecentTasks();
+    }
+
+    @PutMapping("/update-order-status/{purchaseId}")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable long purchaseId, @RequestBody String updatedOrderStatus){
+        purchaseService.updateOrderStatus(purchaseId, updatedOrderStatus);
+        return ResponseEntity.ok(Map.of("Message", "Order status updated"));
+    }
+
+    @PutMapping("/update-payment-status/{purchaseId}")
+    public ResponseEntity<?> updatePaymentStatus(@PathVariable long purchaseId, @RequestBody String updatedPaymentStatus){
+        log.info(purchaseId + ": " + updatedPaymentStatus);
+        purchaseService.updatePaymentStatus(purchaseId, updatedPaymentStatus);
+        return ResponseEntity.ok(Map.of("Message", "Payment Status updated"));
     }
 }

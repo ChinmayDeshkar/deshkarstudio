@@ -4,6 +4,7 @@ import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, String> {
+public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, Long> {
     List<CustomerPurchases> findByCreatedDate(LocalDateTime date);
 
     List<CustomerPurchases> findByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
@@ -50,4 +51,18 @@ public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, 
     // 💳 Transactions by payment method
     @Query("SELECT c.paymentMethod, COUNT(c) FROM CustomerPurchases c GROUP BY c.paymentMethod")
     List<Object[]> getTransactionCountByPaymentMethod();
+
+    @Query("SELECT p FROM CustomerPurchases p " +
+            "WHERE p.orderStatus NOT IN ('COMPLETED', 'DELIVERED', 'CANCELLED') " +
+            "OR p.paymentStatus <> 'PAID'")
+    List<CustomerPurchases> findPendingTasks();
+
+    @Query("SELECT c FROM CustomerPurchases c " +
+            "WHERE c.orderStatus IN :statuses " +
+            "AND c.createdDate >= :fromDate")
+    List<CustomerPurchases> findRecentCompletedOrders(
+            @Param("statuses") List<String> statuses,
+            @Param("fromDate") LocalDateTime fromDate
+    );
+
 }
