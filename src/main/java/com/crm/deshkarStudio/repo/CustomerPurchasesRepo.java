@@ -65,4 +65,5 @@ public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, 
             @Param("fromDate") LocalDateTime fromDate
     );
 
+    List<CustomerPurchases> findByCustomerId(long customerId);
 }
