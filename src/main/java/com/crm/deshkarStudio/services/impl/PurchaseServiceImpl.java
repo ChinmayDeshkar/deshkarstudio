@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                     newCustomer.setEmail(payloadCustomer.getEmail());
                     newCustomer.setPhoneNumber(payloadCustomer.getPhoneNumber());
                     newCustomer.setAddress(payloadCustomer.getAddress());
-                    newCustomer.setCreatedDate(LocalDate.now());
+                    newCustomer.setCreatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
                     return customerRepo.save(newCustomer);
                 });
         log.info("Customer: " + customer );
@@ -235,7 +236,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     public List<CustomerPurchases> getRecentTasks() {
             List<String> statuses = List.of("COMPLETED", "DELIVERED", "CANCELLED");
-        LocalDateTime fromDate = LocalDateTime.now().minusDays(5);
+        LocalDateTime fromDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).minusDays(5);
 
         return purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
     }
@@ -269,7 +270,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         if(newPurchase.getOrderStatus().equals(oldPurchase.getOrderStatus())) oldPurchase.setOrderStatus(newPurchase.getOrderStatus());
         if(newPurchase.getRemarks().equals(oldPurchase.getRemarks())) oldPurchase.setRemarks(newPurchase.getRemarks());
 
-        newPurchase.setUpdatedDate(LocalDateTime.now());
+        newPurchase.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 
         return purchaseRepo.save(newPurchase);
     }

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @Service
@@ -23,7 +24,7 @@ public class PurchaseHistoryServiceImpl implements PurchaseHistoryService {
         history.setOrderStatus(purchases.getOrderStatus());
         history.setAdvancePaid(purchases.getAdvancePaid());
         history.setBalance(purchases.getBalance());
-        history.setUpdatedDate(LocalDateTime.now());
+        history.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         history.setUpdatedBy(purchases.getUpdatedBy());
         history.setRemarks(purchases.getRemarks());
 

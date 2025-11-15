@@ -2,10 +2,12 @@ package com.crm.deshkarStudio.contoller;
 
 import com.crm.deshkarStudio.services.impl.EmailServiceImpl;
 import com.crm.deshkarStudio.services.impl.SalesReportServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
+@Slf4j
 @RestController
 @RequestMapping("/api")
 public class DemoController {
@@ -29,7 +31,7 @@ public class DemoController {
 
     @GetMapping("/test")
     public ResponseEntity<?> testReport(){
-
+        log.info("Sending Email...");
         salesReportService.sendDailySalesReport();
         return ResponseEntity.ok("Mail sent");
     }
