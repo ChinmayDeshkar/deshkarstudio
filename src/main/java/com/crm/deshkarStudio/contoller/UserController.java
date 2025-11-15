@@ -24,7 +24,6 @@ public class UserController {
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
         String token = extractToken(request);
-        log.info("Token: " + token);
         String username = jwtUtil.getUsernameFromToken(token);
         User user = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("Error while collecting profile details"));
 

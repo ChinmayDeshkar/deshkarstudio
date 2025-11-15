@@ -36,9 +36,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> login(LoginRequest req) {
+        log.info("Login Request for: " + req);
         User user = userRepo.findByUsername(req.username())
                 .orElse(null);
-
 
         if(user == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("Error", "UserNotFound",
@@ -48,12 +48,9 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("Error", "User is inactive",
                     "Message", "User is inactive " + req.username()));
 
-        System.out.println("from req " + encoder.encode(req.password()));
-        System.out.println("from user  " + encoder.matches(req.password(), user.getPassword()));
         if(encoder.matches(req.password(), user.getPassword())){
-            log.info("coming here.......");
+
             String authToken = jwtUtil.generateToken(req.username(), user.getRole().toString());
-            System.out.println("Logged in " + authToken);
             if (user.isFirstLogin()) return ResponseEntity.status(HttpStatus.OK).body(Map.of("Message", "First Login detected, Please reset Password"));
 
             log.info(user.getRole().toString());
@@ -80,29 +77,14 @@ public class AuthServiceImpl implements AuthService {
         if (userRepo.existsByEmail(newUser.getEmail()))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("Message: ", "Email id already present"));
 
-//        User user = new User();
-//        user.setPassword(newUser.getPassword());
-//        user.setPhone(newUser.getPhone());
-//        user.setSalary(newUser.getSalary());
-//        user.setEmail(newUser.getEmail());
-//        user.setRole(Role.ROLE_EMPLOYEE);
-//        user.setPassword(encoder.encode(newUser.getPassword()));
-//        int userCount = userRepo.findAll().size();
-//        String userId = String.format("d%04d", userCount + 1);
-//
-//        System.out.println("Generated User ID: " + userId);
-//        user.setUsername(userId);
-
         User user = newUser;
         user.setRole(Role.ROLE_EMPLOYEE);
         user.setPassword(encoder.encode(newUser.getPassword()));
         int userCount = userRepo.findAll().size();
         String userId = String.format("d%04d", userCount + 1);
 
-        System.out.println("Generated User ID: " + userId);
         user.setUsername(userId);
 
-        log.info(user.toString());
 
         userRepo.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Message: ", "User Created",
@@ -124,7 +106,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Boolean validateToken(String token) {
-        log.info("Token to be validate: " + token);
         boolean isValid = false;
         if(jwtUtil.validateToken(token))
             isValid = true;

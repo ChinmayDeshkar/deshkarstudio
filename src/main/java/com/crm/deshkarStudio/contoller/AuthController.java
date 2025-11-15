@@ -31,13 +31,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public  ResponseEntity<?> login(@RequestBody LoginRequest req){
-        log.info(req.toString());
         return authService.login(req);
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody User user){
-        log.info("User: " + user.toString());
         return authService.signup(user);
     }
 
@@ -49,8 +47,7 @@ public class AuthController {
     @PostMapping("/validate-token")
     public ResponseEntity<?> validateToken(@RequestBody Map<String, String> map){
         String token = map.get("token");
-        System.out.println("Token in Controller: " + map.get("token"));
-        System.out.println(token.getClass());
+
         boolean isValid = authService.validateToken(token);
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("isValid", isValid));
 

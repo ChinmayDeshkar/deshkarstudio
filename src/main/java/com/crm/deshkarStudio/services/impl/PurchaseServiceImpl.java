@@ -71,10 +71,10 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public PurchaseDetailsDTO getPurchaseById(long id) {
 
+        log.debug("Getting Purchase details for id = " + id);
         CustomerPurchases purchase = purchaseRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Error while getting purchase with id, " + id));
 
-        log.info("Purchase = " + purchase);
         PurchaseDetailsDTO purchaseDetailsDTO = new PurchaseDetailsDTO(
                 purchase.getPurchaseId(),
                 purchase.getCustomer(),
@@ -90,8 +90,6 @@ public class PurchaseServiceImpl implements PurchaseService {
                 purchase.getRemarks()
         );
 
-        log.info("Purchase Details: " + purchaseDetailsDTO);
-
         return purchaseDetailsDTO;
     }
 
@@ -100,7 +98,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         List<CustomerPurchases> purchases = purchaseRepo.findByCustomerId(id);
 
-        log.info("Purchase = " + purchases);
         List<PurchaseDetailsDTO> purchaseDTOS = new ArrayList<>();
         for(CustomerPurchases purchase : purchases)
         {
@@ -121,10 +118,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             purchaseDTOS.add(purchaseDetailsDTO);
         }
 
-        log.info("Purchase Details: " + purchases);
-
         return purchaseDTOS;
-//        return purchaseRepo.findByCustomerId(id);
     }
 
     private PurchaseDTO mapToDTO(CustomerPurchases p) {
