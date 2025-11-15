@@ -11,9 +11,6 @@ import org.springframework.http.ResponseEntity;
 public class DemoController {
 
     @Autowired
-    EmailServiceImpl emailService;
-
-    @Autowired
     SalesReportServiceImpl salesReportService;
 
     @GetMapping("/admin/hello")
