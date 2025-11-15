@@ -82,7 +82,8 @@ public class SecurityConfig {
 
         // CORS configuration (Angular 14-friendly)
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        cors.addAllowedOrigin("http://localhost:4200");
+        cors.addAllowedOrigin("https://deshkarstudio-front.vercel.app");
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(Arrays.asList("*"));
         cors.setAllowCredentials(true);
