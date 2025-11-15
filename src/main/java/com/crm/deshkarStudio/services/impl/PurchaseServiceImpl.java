@@ -1,16 +1,17 @@
 package com.crm.deshkarStudio.services.impl;
 
 import com.crm.deshkarStudio.dto.PurchaseDTO;
+import com.crm.deshkarStudio.dto.PurchaseDetailsDTO;
 import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.Customer;
 import com.crm.deshkarStudio.model.CustomerPurchases;
 import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.repo.CustomerRepo;
+import com.crm.deshkarStudio.services.PurchaseHistoryService;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,11 +31,13 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private final CustomerRepo customerRepo;
     private final CustomerPurchasesRepo purchaseRepo;
+    private final PurchaseHistoryService historyService;
 
     @Override
     public ResponseEntity<?> addPurchase(CustomerPurchases purchase) {
         Customer payloadCustomer = purchase.getCustomer();
-        // ✅ 1. Check if customer already exists
+        log.info("Coming here..");
+        // 1. Check if customer already exists
         Customer customer = customerRepo.findByPhoneNumber(payloadCustomer.getPhoneNumber())
                 .orElseGet(() -> {
                     Customer newCustomer = new Customer();
@@ -44,8 +48,9 @@ public class PurchaseServiceImpl implements PurchaseService {
                     newCustomer.setCreatedDate(LocalDate.now());
                     return customerRepo.save(newCustomer);
                 });
+        log.info("Customer: " + customer );
         purchase.setCustomer(customer);
-        // ✅ 2. Add new purchase for the found/created customer
+        // 2. Add new purchase for the found/created customer
 
         if(purchase.getAdvancePaid() < purchase.getPrice()){
             double balance = purchase.getPrice() - purchase.getAdvancePaid();
@@ -58,8 +63,42 @@ public class PurchaseServiceImpl implements PurchaseService {
         purchase.setOrderStatus("CREATED");
 
         purchaseRepo.save(purchase);
+        historyService.addToPurchaseHistory(purchase);
 
         return ResponseEntity.ok(Map.of("message", "Purchase added successfully", "customerId", customer.getId()));
+    }
+
+    @Override
+    public PurchaseDetailsDTO getPurchaseById(long id) {
+
+        CustomerPurchases purchase = purchaseRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Error while getting purchase with id, " + id));
+
+        log.info("Purchase = " + purchase);
+        PurchaseDetailsDTO purchaseDetailsDTO = new PurchaseDetailsDTO(
+                purchase.getPurchaseId(),
+                purchase.getCustomer(),
+                purchase.getPrice(),
+                purchase.getPaymentMethod(),
+                purchase.getPaymentStatus(),
+                purchase.getOrderStatus(),
+                purchase.getAdvancePaid(),
+                purchase.getBalance(),
+                purchase.getCreatedDate(),
+                purchase.getUpdatedDate(),
+                purchase.getUpdatedBy(),
+                purchase.getRemarks()
+        );
+
+        log.info("Purchase Details: " + purchaseDetailsDTO);
+
+        return purchaseDetailsDTO;
+    }
+
+    @Override
+    public List<CustomerPurchases> getPurchaseByCustId(long id) {
+
+        return purchaseRepo.findByCustomerId(id);
     }
 
     private PurchaseDTO mapToDTO(CustomerPurchases p) {
@@ -198,4 +237,42 @@ public class PurchaseServiceImpl implements PurchaseService {
         return purchaseRepo.save(purchase);
     }
 
+    @Override
+    public CustomerPurchases updatePurchase(long purchaseId, CustomerPurchases newPurchase) {
+        CustomerPurchases oldPurchase = purchaseRepo.findById(purchaseId)
+                .orElseThrow(() -> new RuntimeException("PurchaseId not found: " + purchaseId));
+
+        if(newPurchase.getPrice() == oldPurchase.getPrice()) oldPurchase.setPurchaseId(newPurchase.getPurchaseId());
+        if(newPurchase.getAdvancePaid() == oldPurchase.getAdvancePaid()) oldPurchase.setAdvancePaid(newPurchase.getAdvancePaid());
+        if(newPurchase.getPaymentMethod().equals(oldPurchase.getPaymentMethod())) oldPurchase.setPaymentMethod(newPurchase.getPaymentMethod());
+        if(newPurchase.getPaymentStatus().equals(oldPurchase.getPaymentStatus())) oldPurchase.setPaymentStatus(newPurchase.getPaymentStatus());
+        if(newPurchase.getOrderStatus().equals(oldPurchase.getOrderStatus())) oldPurchase.setOrderStatus(newPurchase.getOrderStatus());
+        if(newPurchase.getRemarks().equals(oldPurchase.getRemarks())) oldPurchase.setRemarks(newPurchase.getRemarks());
+
+        newPurchase.setUpdatedDate(LocalDateTime.now());
+
+        return purchaseRepo.save(newPurchase);
+    }
+
+    boolean isPriceUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
+        return newPurchase.getPrice() == oldPurchase.getPrice();
+    }
+
+    boolean isAdvanceUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
+        return newPurchase.getAdvancePaid() == oldPurchase.getAdvancePaid();
+    }
+
+    boolean isPaymentMethodUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
+        return Objects.equals(newPurchase.getPaymentMethod(), oldPurchase.getPaymentMethod());
+    }
+    boolean isOrderStausUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
+        return Objects.equals(newPurchase.getOrderStatus(), oldPurchase.getOrderStatus());
+    }
+
+    boolean isPaymentStatusUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
+        return Objects.equals(newPurchase.getPaymentStatus(), oldPurchase.getPaymentStatus());
+    }
+    boolean isRemarkUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
+        return Objects.equals(newPurchase.getRemarks(), oldPurchase.getRemarks());
+    }
 }
