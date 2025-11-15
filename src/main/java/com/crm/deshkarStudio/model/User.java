@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Entity
@@ -49,7 +50,7 @@ public class User {
     private String salary;
     private boolean isActive = true;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
-    private LocalDateTime dte_created = LocalDateTime.now();
+    private LocalDateTime dte_created = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 
     private boolean firstLogin = true;
 

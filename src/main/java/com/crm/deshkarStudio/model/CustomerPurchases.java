@@ -8,6 +8,7 @@ import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -34,12 +35,12 @@ public class CustomerPurchases {
     private double advancePaid;
     private double balance;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
-    private LocalDateTime createdDate = LocalDateTime.now();
+    private LocalDateTime createdDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updatedDate;
     private String updatedBy;
     private String remarks;
 
     @PostPersist
-    protected void onUpdated(){ updatedDate = LocalDateTime.now();}
+    protected void onUpdated(){ updatedDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));}
 }

@@ -11,7 +11,7 @@ public class ReportScheduler {
     private final SalesReportServiceImpl reportService;
 
     // Schedule every day at 8 AM
-    @Scheduled(cron = "0 20 2 * * ?")
+    @Scheduled(cron = "0 10 2 * * ?", zone = "Asia/Kolkata")
     public void sendDailyReport() {
         reportService.sendDailySalesReport();
     }
