@@ -19,9 +19,6 @@ public class EmailServiceImpl implements EmailService{
     private EmailServiceImpl(JavaMailSender mailSender){
         this.mailSender = mailSender;
     }
-    @Value("${sales.report.recipient}")
-    private String recipientEmail;
-
 
     @Override
     public void sendEmail(String to, String subject, String htmlContent) {
