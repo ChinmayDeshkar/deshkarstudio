@@ -60,7 +60,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            @Value("${app.cors.allowed-origins:http://localhost:4200}") String allowedOrigins
+            @Value("${app.cors.allowed-origins}")
+            String allowedOrigins
     ) throws Exception {
 
         JwtAuthFilter jwtFilter = new JwtAuthFilter(jwtUtil, userDetailsService);
@@ -82,8 +83,7 @@ public class SecurityConfig {
 
         // CORS configuration (Angular 14-friendly)
         CorsConfiguration cors = new CorsConfiguration();
-        cors.addAllowedOrigin("http://localhost:4200");
-        cors.addAllowedOrigin("https://deshkarstudio-front.vercel.app");
+        cors.addAllowedOrigin(allowedOrigins);
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(Arrays.asList("*"));
         cors.setAllowCredentials(true);

@@ -31,20 +31,17 @@ public class PurchaseController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addPurchase(@RequestBody CustomerPurchases purchase) {
-        log.info("Request Body: "+ purchase.toString());
         return purchaseService.addPurchase(purchase);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PurchaseDetailsDTO> getPurchaseById(@PathVariable long id) {
-        log.info("Getting purchases by id: " + id);
         PurchaseDetailsDTO dto = purchaseService.getPurchaseById(id);
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/cust-id/{id}")
     public ResponseEntity<List<PurchaseDetailsDTO>> getPurchaseByCustId(@PathVariable long id) {
-        log.info("Getting purchases by customer id: " + id);
         List<PurchaseDetailsDTO> dto = purchaseService.getPurchaseByCustId(id);
         return ResponseEntity.ok(dto);
     }
@@ -117,13 +114,11 @@ public class PurchaseController {
 
     @PutMapping("/update-payment-status/{purchaseId}")
     public ResponseEntity<?> updatePaymentStatus(@PathVariable long purchaseId, @RequestBody String updatedPaymentStatus){
-        log.info(purchaseId + ": " + updatedPaymentStatus);
         purchaseService.updatePaymentStatus(purchaseId, updatedPaymentStatus);
         return ResponseEntity.ok(Map.of("Message", "Payment Status updated"));
     }
     @PutMapping("/update/{id}")
     public ResponseEntity<CustomerPurchases> updatePurchase(@PathVariable long id, @RequestBody CustomerPurchases purchase){
-        log.info("Coming coming");
         return ResponseEntity.ok(purchaseService.updatePurchase(id, purchase));
     }
 
