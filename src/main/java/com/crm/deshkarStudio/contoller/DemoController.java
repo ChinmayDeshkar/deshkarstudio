@@ -15,4 +15,9 @@ public class DemoController {
 
     @GetMapping("/user/hello")
     public ResponseEntity<String> userHello() { return ResponseEntity.ok("Hello Authenticated User"); }
+
+    @GetMapping("/ping")
+    public String ping() {
+        return "OK";
+    }
 }
