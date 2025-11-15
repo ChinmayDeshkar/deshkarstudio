@@ -20,7 +20,7 @@ public interface PurchaseService {
 
     PurchaseDetailsDTO getPurchaseById(long id);
 
-    List<CustomerPurchases> getPurchaseByCustId(long id);
+    List<PurchaseDetailsDTO> getPurchaseByCustId(long id);
 
     List<CustomerPurchases> getTodayPurchases() ;
 

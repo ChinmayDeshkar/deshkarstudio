@@ -43,9 +43,9 @@ public class PurchaseController {
     }
 
     @GetMapping("/cust-id/{id}")
-    public ResponseEntity<List<CustomerPurchases>> getPurchaseByCustId(@PathVariable long id) {
+    public ResponseEntity<List<PurchaseDetailsDTO>> getPurchaseByCustId(@PathVariable long id) {
         log.info("Getting purchases by customer id: " + id);
-        List<CustomerPurchases> dto = purchaseService.getPurchaseByCustId(id);
+        List<PurchaseDetailsDTO> dto = purchaseService.getPurchaseByCustId(id);
         return ResponseEntity.ok(dto);
     }
 

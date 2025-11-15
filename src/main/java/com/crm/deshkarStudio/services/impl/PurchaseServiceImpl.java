@@ -96,9 +96,35 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public List<CustomerPurchases> getPurchaseByCustId(long id) {
+    public List<PurchaseDetailsDTO> getPurchaseByCustId(long id) {
 
-        return purchaseRepo.findByCustomerId(id);
+        List<CustomerPurchases> purchases = purchaseRepo.findByCustomerId(id);
+
+        log.info("Purchase = " + purchases);
+        List<PurchaseDetailsDTO> purchaseDTOS = new ArrayList<>();
+        for(CustomerPurchases purchase : purchases)
+        {
+            PurchaseDetailsDTO purchaseDetailsDTO = new PurchaseDetailsDTO(
+                    purchase.getPurchaseId(),
+                    purchase.getCustomer(),
+                    purchase.getPrice(),
+                    purchase.getPaymentMethod(),
+                    purchase.getPaymentStatus(),
+                    purchase.getOrderStatus(),
+                    purchase.getAdvancePaid(),
+                    purchase.getBalance(),
+                    purchase.getCreatedDate(),
+                    purchase.getUpdatedDate(),
+                    purchase.getUpdatedBy(),
+                    purchase.getRemarks()
+            );
+            purchaseDTOS.add(purchaseDetailsDTO);
+        }
+
+        log.info("Purchase Details: " + purchases);
+
+        return purchaseDTOS;
+//        return purchaseRepo.findByCustomerId(id);
     }
 
     private PurchaseDTO mapToDTO(CustomerPurchases p) {
