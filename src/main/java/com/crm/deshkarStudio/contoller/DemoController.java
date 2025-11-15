@@ -1,11 +1,20 @@
 package com.crm.deshkarStudio.contoller;
 
+import com.crm.deshkarStudio.services.impl.EmailServiceImpl;
+import com.crm.deshkarStudio.services.impl.SalesReportServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api")
 public class DemoController {
+
+    @Autowired
+    EmailServiceImpl emailService;
+
+    @Autowired
+    SalesReportServiceImpl salesReportService;
 
     @GetMapping("/admin/hello")
     public ResponseEntity<String> adminHello() { return ResponseEntity.ok("Hello Admin"); }
@@ -19,5 +28,12 @@ public class DemoController {
     @GetMapping("/ping")
     public String ping() {
         return "OK";
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> testReport(){
+
+        salesReportService.sendDailySalesReport();
+        return ResponseEntity.ok("Mail sent");
     }
 }

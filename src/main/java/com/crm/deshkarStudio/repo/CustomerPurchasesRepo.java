@@ -52,10 +52,10 @@ public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, 
     @Query("SELECT c.paymentMethod, COUNT(c) FROM CustomerPurchases c GROUP BY c.paymentMethod")
     List<Object[]> getTransactionCountByPaymentMethod();
 
-    @Query("SELECT p FROM CustomerPurchases p " +
-            "WHERE p.orderStatus NOT IN ('COMPLETED', 'DELIVERED', 'CANCELLED') " +
-            "OR p.paymentStatus <> 'PAID'")
-    List<CustomerPurchases> findPendingTasks();
+//    @Query("SELECT p FROM CustomerPurchases p " +
+//            "WHERE p.orderStatus NOT IN ('COMPLETED', 'DELIVERED', 'CANCELLED') " +
+//            "OR p.paymentStatus <> 'PAID'")
+//    List<CustomerPurchases> findPendingTasks();
 
     @Query("SELECT c FROM CustomerPurchases c " +
             "WHERE c.orderStatus IN :statuses " +
@@ -66,4 +66,13 @@ public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, 
     );
 
     List<CustomerPurchases> findByCustomerId(long customerId);
+
+    @Query("SELECT c FROM CustomerPurchases c WHERE c.createdDate >= :start AND c.createdDate < :end")
+    List<CustomerPurchases> findTodaysPurchases(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(c) FROM CustomerPurchases c WHERE c.createdDate >= :start AND c.createdDate < :end")
+    Long countCustomersVisitedToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT c FROM CustomerPurchases c WHERE c.orderStatus <> 'COMPLETED' AND c.orderStatus <> 'DELIVERED' AND c.paymentStatus <> 'PAID'")
+    List<CustomerPurchases> findPendingTasks();
 }
