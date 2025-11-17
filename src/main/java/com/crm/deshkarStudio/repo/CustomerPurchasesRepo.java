@@ -73,6 +73,6 @@ public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, 
     @Query("SELECT COUNT(c) FROM CustomerPurchases c WHERE c.createdDate >= :start AND c.createdDate < :end")
     Long countCustomersVisitedToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    @Query("SELECT c FROM CustomerPurchases c WHERE c.orderStatus <> 'COMPLETED' AND c.orderStatus <> 'DELIVERED' AND c.paymentStatus <> 'PAID'")
+    @Query("SELECT c FROM CustomerPurchases c  WHERE c.orderStatus NOT IN ('DELIVERED', 'CANCELLED')")
     List<CustomerPurchases> findPendingTasks();
 }
