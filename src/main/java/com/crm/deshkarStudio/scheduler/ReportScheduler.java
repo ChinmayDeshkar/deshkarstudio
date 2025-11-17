@@ -2,17 +2,20 @@ package com.crm.deshkarStudio.scheduler;
 
 import com.crm.deshkarStudio.services.impl.SalesReportServiceImpl;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class ReportScheduler {
     private final SalesReportServiceImpl reportService;
 
     // Schedule every day at 8 AM
-    @Scheduled(cron = "0 45 2 * * ?", zone = "Asia/Kolkata")
+    @Scheduled(cron = "0 51 2 * * ?", zone = "Asia/Kolkata")
     public void sendDailyReport() {
+        log.debug("Hitting Scheduled job for daily report");
         reportService.sendDailySalesReport();
     }
 }

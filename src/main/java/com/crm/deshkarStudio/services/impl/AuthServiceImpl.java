@@ -7,7 +7,9 @@ import com.crm.deshkarStudio.dto.SignupRequest;
 import com.crm.deshkarStudio.model.Role;
 import com.crm.deshkarStudio.model.User;
 import com.crm.deshkarStudio.repo.UserRepo;
+import com.crm.deshkarStudio.security.PasswordGenerator;
 import com.crm.deshkarStudio.services.AuthService;
+import com.crm.deshkarStudio.services.EmailService;
 import com.crm.deshkarStudio.services.JwtUtil;
 import com.crm.deshkarStudio.services.OtpService;
 import lombok.AllArgsConstructor;
@@ -33,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
     private final OtpService otpService;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final PasswordGenerator passwordGenerator;
+    private final EmailService emailService;
 
     @Override
     public ResponseEntity<?> login(LoginRequest req) {
@@ -77,18 +81,20 @@ public class AuthServiceImpl implements AuthService {
         if (userRepo.existsByEmail(newUser.getEmail()))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("Message: ", "Email id already present"));
 
+        String newPassword = passwordGenerator.generatePassword(8);
         User user = newUser;
         user.setRole(Role.ROLE_EMPLOYEE);
-        user.setPassword(encoder.encode(newUser.getPassword()));
+        user.setPassword(encoder.encode(newPassword));
         int userCount = userRepo.findAll().size();
         String userId = String.format("d%04d", userCount + 1);
-
         user.setUsername(userId);
 
-
         userRepo.save(user);
+        emailService.createAndSendMailForNewUser("deshkarchinmay42@gmail.com", "New user created - " + newUser.getUsername(), newUser, newPassword);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Message: ", "User Created",
                                                                         "Username: ", user.getUsername()));
+
+
     }
 
     @Override

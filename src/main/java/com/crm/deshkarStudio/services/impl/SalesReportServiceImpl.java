@@ -4,6 +4,7 @@ import com.crm.deshkarStudio.model.CustomerPurchases;
 import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.services.EmailService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class SalesReportServiceImpl {
@@ -31,7 +33,7 @@ public class SalesReportServiceImpl {
         List<CustomerPurchases> todaysPurchases = purchaseRepository.findTodaysPurchases(startOfDay, endOfDay);
 
         if (todaysPurchases.isEmpty()) {
-            emailService.sendEmail("recipient@example.com", "Daily Sales Report - " + today, "No sales today.");
+            emailService.sendEmail("itschinmayd@gmail.com", "Daily Sales Report - " + today, "No sales today.");
             return;
         }
 
@@ -124,6 +126,9 @@ public class SalesReportServiceImpl {
         );
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String formattedDate = today.format(dateTimeFormatter);
-        emailService.sendEmail("itschinmayd@gmail.com", "Daily Sales Report: " +formattedDate, htmlContent);
+        log.info("Sending mail with Daily Sales Report");
+        emailService.sendEmail("itschinmayd@gmail.com", "Testing report" +formattedDate, htmlContent);
+
+        log.info("Email sent successfully");
     }
 }
