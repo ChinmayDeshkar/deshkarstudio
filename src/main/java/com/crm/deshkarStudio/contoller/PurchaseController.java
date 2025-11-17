@@ -31,6 +31,7 @@ public class PurchaseController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addPurchase(@RequestBody CustomerPurchases purchase) {
+        log.info(purchase.toString());
         return purchaseService.addPurchase(purchase);
     }
 

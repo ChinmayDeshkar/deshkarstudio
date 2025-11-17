@@ -1,5 +1,6 @@
 package com.crm.deshkarStudio.model;
 
+import com.crm.deshkarStudio.dto.Items;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -9,6 +10,7 @@ import org.springframework.cglib.core.Local;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,7 +29,8 @@ public class CustomerPurchases {
     @JoinColumn(name = "customer_id", nullable = false)
     @JsonBackReference
     private Customer customer;
-
+    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchaseItems> items;
     private double price;
     private String paymentMethod;
     private String paymentStatus;
