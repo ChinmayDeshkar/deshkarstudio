@@ -6,5 +6,8 @@ public interface EmailService {
 
     void sendEmail(String to, String subject, String htmlContent);
 
-    public void createAndSendMailForNewUser(String to, String subject, User user, String password);
+    void createAndSendMailForNewUser(String to, String subject, User user, String password);
+
+    void sendOtpEmail(String otp);
+
 }

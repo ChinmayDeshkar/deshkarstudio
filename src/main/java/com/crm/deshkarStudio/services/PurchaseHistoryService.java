@@ -5,5 +5,5 @@ import com.crm.deshkarStudio.model.PurchaseHistory;
 
 public interface PurchaseHistoryService {
 
-    PurchaseHistory addToPurchaseHistory(CustomerPurchases purchases);
+    PurchaseHistory addToPurchaseHistory(CustomerPurchases purchases, String note);
 }

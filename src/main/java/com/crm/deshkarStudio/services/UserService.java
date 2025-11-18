@@ -14,4 +14,5 @@ public interface UserService {
     User deactivateUser(String id);
     List<User> getAllEmployee();
     User updateEmployee(String id, User updatedUser);
+
 }

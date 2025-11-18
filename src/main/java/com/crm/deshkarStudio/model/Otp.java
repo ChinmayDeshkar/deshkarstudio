@@ -21,7 +21,7 @@ public class Otp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    private String phoneNumber;
+    private String username;
     private String otp;
     private LocalDateTime expiryTime;
 }

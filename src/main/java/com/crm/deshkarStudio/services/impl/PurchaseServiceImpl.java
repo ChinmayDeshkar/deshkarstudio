@@ -6,6 +6,7 @@ import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.Customer;
 import com.crm.deshkarStudio.model.CustomerPurchases;
+import com.crm.deshkarStudio.model.PurchaseItems;
 import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.repo.CustomerRepo;
 import com.crm.deshkarStudio.services.PurchaseHistoryService;
@@ -38,7 +39,8 @@ public class PurchaseServiceImpl implements PurchaseService {
     public ResponseEntity<?> addPurchase(CustomerPurchases purchase) {
         Customer payloadCustomer = purchase.getCustomer();
         log.info("Coming here..");
-        // 1. Check if customer already exists
+
+        // 1. Check if customer exists
         Customer customer = customerRepo.findByPhoneNumber(payloadCustomer.getPhoneNumber())
                 .orElseGet(() -> {
                     Customer newCustomer = new Customer();
@@ -49,24 +51,52 @@ public class PurchaseServiceImpl implements PurchaseService {
                     newCustomer.setCreatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
                     return customerRepo.save(newCustomer);
                 });
-        log.info("Customer: " + customer );
-        purchase.setCustomer(customer);
-        // 2. Add new purchase for the found/created customer
 
-        if(purchase.getAdvancePaid() < purchase.getPrice()){
+        log.info("Customer: " + customer);
+        purchase.setCustomer(customer);
+
+        // 2. Calculate balance & payment status
+        if (purchase.getAdvancePaid() < purchase.getPrice()) {
             double balance = purchase.getPrice() - purchase.getAdvancePaid();
             purchase.setBalance(balance);
-            if(balance > 0)
+
+            if (balance > 0)
                 purchase.setPaymentStatus("PENDING");
-
         }
-        log.info("Purchase to be added : " + purchase);
+
         purchase.setOrderStatus("CREATED");
+        log.info("Purchase received: " + purchase);
 
-        purchaseRepo.save(purchase);
-        historyService.addToPurchaseHistory(purchase);
+        // 3. Process items (IMPORTANT)
+        if (purchase.getItems() != null) {
 
-        return ResponseEntity.ok(Map.of("message", "Purchase added successfully", "customerId", customer.getId()));
+            double total = 0;
+
+            for (PurchaseItems item : purchase.getItems()) {
+                // Set purchase reference
+                item.setPurchase(purchase);
+
+                // calculate total for this item
+                item.setTotal(item.getQuantity() * item.getItemPrice());
+
+                total += item.getTotal();
+            }
+
+            // override purchase price (optional)
+            purchase.setPrice(total);
+        }
+
+        // 4. Save purchase along with items (cascade=ALL does the magic)
+        CustomerPurchases savedPurchase = purchaseRepo.save(purchase);
+
+        // 5. Send to history
+        historyService.addToPurchaseHistory(savedPurchase, "Job created");
+
+        return ResponseEntity.ok(
+                Map.of("message", "Purchase added successfully",
+                        "customerId", customer.getId(),
+                        "purchaseId", savedPurchase.getPurchaseId())
+        );
     }
 
     @Override
@@ -260,15 +290,9 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public CustomerPurchases updatePurchase(long purchaseId, CustomerPurchases newPurchase) {
+        String note = "";
         CustomerPurchases oldPurchase = purchaseRepo.findById(purchaseId)
                 .orElseThrow(() -> new RuntimeException("PurchaseId not found: " + purchaseId));
-
-        if(newPurchase.getPrice() == oldPurchase.getPrice()) oldPurchase.setPurchaseId(newPurchase.getPurchaseId());
-        if(newPurchase.getAdvancePaid() == oldPurchase.getAdvancePaid()) oldPurchase.setAdvancePaid(newPurchase.getAdvancePaid());
-        if(newPurchase.getPaymentMethod().equals(oldPurchase.getPaymentMethod())) oldPurchase.setPaymentMethod(newPurchase.getPaymentMethod());
-        if(newPurchase.getPaymentStatus().equals(oldPurchase.getPaymentStatus())) oldPurchase.setPaymentStatus(newPurchase.getPaymentStatus());
-        if(newPurchase.getOrderStatus().equals(oldPurchase.getOrderStatus())) oldPurchase.setOrderStatus(newPurchase.getOrderStatus());
-        if(newPurchase.getRemarks().equals(oldPurchase.getRemarks())) oldPurchase.setRemarks(newPurchase.getRemarks());
 
         newPurchase.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 
