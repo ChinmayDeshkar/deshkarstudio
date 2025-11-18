@@ -21,14 +21,15 @@ public class OtpServiceImpl implements OtpService {
 
     @Override
     @Transactional
-    public void sendOtp(String username) {
+    public String sendOtp(String username) {
         String otp = String.valueOf(new Random().nextInt(900000) + 100000);
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
 
         otpRepo.deleteByUsername(username); // clean old OTP
         otpRepo.save(new Otp(null, username, otp, expiry));
         System.out.println(otp);
-        emailService.sendOtpEmail(otp);
+//        emailService.sendOtpEmail(otp);
+        return otp;
     }
 
     @Override

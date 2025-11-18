@@ -59,13 +59,14 @@ public class AuthServiceImpl implements AuthService {
 
             log.info(user.getRole().toString());
 
-            otpService.sendOtp(user.getUsername());
+            String otp = otpService.sendOtp(user.getUsername());
 
             // Tell frontend to go to OTP verify page
             return ResponseEntity.ok(Map.of(
                     "otpSent", true,
-                    "username", user.getUsername()
-            ));
+                    "username", user.getUsername(),
+                    "otp", otp
+                    ));
 //            return ResponseEntity.status(HttpStatus.OK).body(Map.of("Message", "User logged in successfully",
 //                                                                        "AuthToken", authToken,
 //                                                                        "Role", user.getRole(),

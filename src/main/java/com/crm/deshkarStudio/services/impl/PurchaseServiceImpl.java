@@ -88,6 +88,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         // 4. Save purchase along with items (cascade=ALL does the magic)
         CustomerPurchases savedPurchase = purchaseRepo.save(purchase);
+        log.info("Purchased added. Now adding in history");
 
         // 5. Send to history
         historyService.addToPurchaseHistory(savedPurchase, "Job created");
