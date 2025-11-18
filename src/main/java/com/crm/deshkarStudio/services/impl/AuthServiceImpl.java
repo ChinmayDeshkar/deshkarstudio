@@ -58,10 +58,18 @@ public class AuthServiceImpl implements AuthService {
             if (user.isFirstLogin()) return ResponseEntity.status(HttpStatus.OK).body(Map.of("Message", "First Login detected, Please reset Password"));
 
             log.info(user.getRole().toString());
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of("Message", "User logged in successfully",
-                                                                        "AuthToken", authToken,
-                                                                        "Role", user.getRole(),
-                                                                        "Username", user.getUsername()));
+
+            otpService.sendOtp(user.getUsername());
+
+            // Tell frontend to go to OTP verify page
+            return ResponseEntity.ok(Map.of(
+                    "otpSent", true,
+                    "username", user.getUsername()
+            ));
+//            return ResponseEntity.status(HttpStatus.OK).body(Map.of("Message", "User logged in successfully",
+//                                                                        "AuthToken", authToken,
+//                                                                        "Role", user.getRole(),
+//                                                                        "Username", user.getUsername()));
         }
 
 
@@ -117,4 +125,28 @@ public class AuthServiceImpl implements AuthService {
             isValid = true;
         return isValid;
     }
+
+    @Override
+    public ResponseEntity<?> verifyOtp(Map<String, String> req) {
+        String username = req.get("username");
+        String otp = req.get("otp");
+
+        if (!otpService.verifyOtp(username, otp)) {
+            return ResponseEntity.badRequest().body(Map.of("Message", "Invalid OTP"));
+        }
+
+        User user = userRepo.findByUsername(username).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("Message", "User not found"));
+
+        // Generate JWT (same as before)
+        String authToken = jwtUtil.generateToken(username, user.getRole().toString());
+
+        return ResponseEntity.ok(Map.of(
+                "Message", "Login successful",
+                "AuthToken", authToken,
+                "Role", user.getRole(),
+                "Username", username
+        ));
+    }
+
 }

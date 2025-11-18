@@ -89,4 +89,20 @@ public class EmailServiceImpl implements EmailService{
             log.error("Failed to send email", e);
         }
     }
+
+    public void sendOtpEmail(String otp) {
+        try{
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo("itschinmayd@gmail.com");
+            helper.setFrom("deshkarchinmay42@gmail.com");
+            helper.setSubject("OTP for login");
+            helper.setText("OTP for your login: " + otp, true); // HTML
+            mailSender.send(message);
+            log.info("Email for OTP sent to {}", "itschinmayd@gmail.com");
+        }
+        catch (Exception e){
+            log.error(e.toString());
+        }
+    }
 }

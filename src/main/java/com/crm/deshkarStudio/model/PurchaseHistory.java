@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -20,20 +21,8 @@ public class PurchaseHistory {
     private long id;
 
     private Long purchaseId;
-
-    @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false)
-    @JsonBackReference
-    private Customer customer;
-
-    private double price;
-    private String paymentMethod;
-    private String paymentStatus;
-    private String orderStatus;
-    private double advancePaid;
-    private double balance;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
-    private LocalDateTime updatedDate;
     private String updatedBy;
-    private String remarks;
+    private String note;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime dte_updated = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 }

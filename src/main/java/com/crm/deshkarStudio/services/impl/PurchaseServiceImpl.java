@@ -90,7 +90,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         CustomerPurchases savedPurchase = purchaseRepo.save(purchase);
 
         // 5. Send to history
-        historyService.addToPurchaseHistory(savedPurchase);
+        historyService.addToPurchaseHistory(savedPurchase, "Job created");
 
         return ResponseEntity.ok(
                 Map.of("message", "Purchase added successfully",
@@ -290,15 +290,9 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public CustomerPurchases updatePurchase(long purchaseId, CustomerPurchases newPurchase) {
+        String note = "";
         CustomerPurchases oldPurchase = purchaseRepo.findById(purchaseId)
                 .orElseThrow(() -> new RuntimeException("PurchaseId not found: " + purchaseId));
-
-        if(newPurchase.getPrice() == oldPurchase.getPrice()) oldPurchase.setPurchaseId(newPurchase.getPurchaseId());
-        if(newPurchase.getAdvancePaid() == oldPurchase.getAdvancePaid()) oldPurchase.setAdvancePaid(newPurchase.getAdvancePaid());
-        if(newPurchase.getPaymentMethod().equals(oldPurchase.getPaymentMethod())) oldPurchase.setPaymentMethod(newPurchase.getPaymentMethod());
-        if(newPurchase.getPaymentStatus().equals(oldPurchase.getPaymentStatus())) oldPurchase.setPaymentStatus(newPurchase.getPaymentStatus());
-        if(newPurchase.getOrderStatus().equals(oldPurchase.getOrderStatus())) oldPurchase.setOrderStatus(newPurchase.getOrderStatus());
-        if(newPurchase.getRemarks().equals(oldPurchase.getRemarks())) oldPurchase.setRemarks(newPurchase.getRemarks());
 
         newPurchase.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 

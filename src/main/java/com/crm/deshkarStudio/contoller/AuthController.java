@@ -50,7 +50,11 @@ public class AuthController {
 
         boolean isValid = authService.validateToken(token);
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("isValid", isValid));
+    }
 
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> req) {
 
+        return authService.verifyOtp(req);
     }
 }

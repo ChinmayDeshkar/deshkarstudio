@@ -18,4 +18,6 @@ public interface AuthService {
     ResponseEntity<?> firstLogin(ResetPassword req);
 
     Boolean validateToken(String token);
+
+    ResponseEntity<?> verifyOtp(Map<String, String> req);
 }
