@@ -99,7 +99,8 @@ public class AuthServiceImpl implements AuthService {
         user.setUsername(userId);
 
         userRepo.save(user);
-        emailService.createAndSendMailForNewUser("deshkarchinmay42@gmail.com", "New user created - " + newUser.getUsername(), newUser, newPassword);
+        log.info("One time password for user: " + user.getUsername() + " Password: " + newPassword);
+        //emailService.createAndSendMailForNewUser("deshkarchinmay42@gmail.com", "New user created - " + newUser.getUsername(), newUser, newPassword);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Message: ", "User Created",
                                                                         "Username: ", user.getUsername()));
 
