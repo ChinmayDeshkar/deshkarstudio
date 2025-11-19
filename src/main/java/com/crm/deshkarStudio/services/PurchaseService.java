@@ -22,29 +22,15 @@ public interface PurchaseService {
 
     List<PurchaseDetailsDTO> getPurchaseByCustId(long id);
 
-    List<CustomerPurchases> getTodayPurchases() ;
+    List<TaskDTO> getTodayPurchases() ;
 
-    List<CustomerPurchases> getPurchasesThisMonth() ;
+    List<TaskDTO> getPurchasesThisMonth() ;
 
-    List<PurchaseDTO> getPurchasesByRange(LocalDateTime start, LocalDateTime end) ;
-
-    public List<RevenueDTO> getRevenuePerDay();
-
-    public List<RevenueDTO> getRevenuePerMonth();
-
-    public List<RevenueDTO> getRevenuePerYear();
-
-    public List<RevenueDTO> getRevenueByRange(LocalDateTime start, LocalDateTime end);
-
-    public List<RevenueDTO> getTransactionCountByPaymentMethod();
+    List<TaskDTO> getPurchasesByRange(LocalDateTime start, LocalDateTime end) ;
 
     List<TaskDTO> getPendingTasks();
 
     List<CustomerPurchases> getRecentTasks();
-
-    CustomerPurchases updateOrderStatus(long purchaseId, String updatedOrderStatus);
-
-    CustomerPurchases updatePaymentStatus(long purchaseId, String updatedPaymentStatus);
 
     CustomerPurchases updatePurchase(long purchaseId, CustomerPurchases purchase);
 }

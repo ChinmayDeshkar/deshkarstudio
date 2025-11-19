@@ -1,16 +1,15 @@
 package com.crm.deshkarStudio.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class PurchaseItems {
 
     @Id
@@ -19,6 +18,7 @@ public class PurchaseItems {
 
     @ManyToOne
     @JoinColumn(name = "purchase_id")
+    @JsonBackReference
     private CustomerPurchases purchase;
 
     @ManyToOne

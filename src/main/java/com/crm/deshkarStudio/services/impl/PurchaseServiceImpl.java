@@ -14,6 +14,7 @@ import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.config.Task;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public ResponseEntity<?> addPurchase(CustomerPurchases purchase) {
         Customer payloadCustomer = purchase.getCustomer();
+
         log.info("Coming here..");
 
         // 1. Check if customer exists
@@ -66,6 +68,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         purchase.setOrderStatus("CREATED");
         log.info("Purchase received: " + purchase);
+        log.info(("Items: " + purchase.getItems()));
 
         // 3. Process items (IMPORTANT)
         if (purchase.getItems() != null) {
@@ -88,6 +91,8 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         // 4. Save purchase along with items (cascade=ALL does the magic)
         CustomerPurchases savedPurchase = purchaseRepo.save(purchase);
+        customer.setPurchaseCount(customer.getPurchaseCount() + 1);
+        customerRepo.save(customer);
         log.info("Purchased added. Now adding in history");
 
         // 5. Send to history
@@ -119,7 +124,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                 purchase.getCreatedDate(),
                 purchase.getUpdatedDate(),
                 purchase.getUpdatedBy(),
-                purchase.getRemarks()
+                purchase.getRemarks(),
+                purchase.getItems()
         );
 
         return purchaseDetailsDTO;
@@ -145,7 +151,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                     purchase.getCreatedDate(),
                     purchase.getUpdatedDate(),
                     purchase.getUpdatedBy(),
-                    purchase.getRemarks()
+                    purchase.getRemarks(),
+                    purchase.getItems()
             );
             purchaseDTOS.add(purchaseDetailsDTO);
         }
@@ -153,99 +160,52 @@ public class PurchaseServiceImpl implements PurchaseService {
         return purchaseDTOS;
     }
 
-    private PurchaseDTO mapToDTO(CustomerPurchases p) {
-        return new PurchaseDTO(
-                p.getPurchaseId(),
-                p.getCustomer().getCustomerName(),
-                p.getCustomer().getPhoneNumber(),
-                p.getPrice(),
-                p.getPaymentMethod(),
-                p.getPaymentStatus(),
-                p.getBalance(),
-                p.getCreatedDate(),
-                p.getRemarks()
-        );
+    private List<TaskDTO> mapToDTO(List<CustomerPurchases> purchases) {
+        List<TaskDTO> tasks = new ArrayList<>(List.of());
+        for(CustomerPurchases purchase: purchases){
+            TaskDTO task = new TaskDTO();
+            task.setPurchaseId(purchase.getPurchaseId());
+            task.setCustomerName(purchase.getCustomer().getCustomerName());
+            task.setPhoneNumber(purchase.getCustomer().getPhoneNumber());
+            task.setPrice(purchase.getPrice());
+            task.setBalance(purchase.getBalance());
+            task.setPaymentStatus(purchase.getPaymentStatus());
+            task.setOrderStatus(purchase.getOrderStatus());
+            task.setRemark(purchase.getRemarks());
+            task.setDte_created(purchase.getCreatedDate());
+            tasks.add(task);
+        }
+        return tasks;
     }
 
-    public List<CustomerPurchases> getTodayPurchases() {
+    @Override
+    public List<TaskDTO> getTodayPurchases() {
 
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
 
         log.info("Fetching purchases between {} and {}", startOfDay, endOfDay);
+        List<CustomerPurchases> purchases = purchaseRepo.findByCreatedDateBetween(startOfDay, endOfDay);
 
-        return purchaseRepo.findByCreatedDateBetween(startOfDay, endOfDay);
+        return mapToDTO(purchases);
     }
 
-    public List<CustomerPurchases> getPurchasesThisMonth() {
-        return purchaseRepo.findPurchasesThisMonth();
+    @Override
+    public List<TaskDTO> getPurchasesThisMonth() {
+        List<CustomerPurchases> purchases = purchaseRepo.findPurchasesThisMonth();
+        return mapToDTO(purchases);
     }
 
-    public List<PurchaseDTO> getPurchasesByRange(LocalDateTime startDate, LocalDateTime endDate) {
+    @Override
+    public List<TaskDTO> getPurchasesByRange(LocalDateTime startDate, LocalDateTime endDate) {
         log.info("Fetching purchases from {} to {}", startDate, endDate);
-
-        return purchaseRepo.findByCreatedDateBetween(startDate, endDate)
-                .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        List<CustomerPurchases> purchases = purchaseRepo.findByCreatedDateBetween(startDate, endDate);
+        return mapToDTO(purchases);
     }
+
 
     @Override
-    public List<RevenueDTO> getRevenuePerDay() {
-        return mapResult(purchaseRepo.getRevenuePerDay(), "day");
-    }
-
-    @Override
-    public List<RevenueDTO> getRevenuePerMonth() {
-        return mapResult(purchaseRepo.getRevenuePerMonth(), "month");
-    }
-
-    @Override
-    public List<RevenueDTO> getRevenuePerYear() {
-        return mapResult(purchaseRepo.getRevenuePerYear(), "year");
-    }
-
-    @Override
-    public List<RevenueDTO> getRevenueByRange(LocalDateTime start, LocalDateTime end) {
-        return mapResult(purchaseRepo.getRevenueBetween(start, end), "day");
-    }
-
-    @Override
-    public List<RevenueDTO> getTransactionCountByPaymentMethod() {
-        List<RevenueDTO> list = new ArrayList<>();
-        for (Object[] obj : purchaseRepo.getTransactionCountByPaymentMethod()) {
-            String method = (String) obj[0];
-            long count = ((Number) obj[1]).longValue();
-            list.add(new RevenueDTO(method, 0, 0));
-        }
-        return list;
-    }
-
-    private List<RevenueDTO> mapResult(List<Object[]> results, String type) {
-        List<RevenueDTO> list = new ArrayList<>();
-        for (Object[] obj : results) {
-            String label;
-
-            if (type.equals("month")) {
-                // For monthly query: obj[0] = month, obj[1] = year
-                label = obj[1] + "-" + obj[0];
-            } else if (type.equals("year")) {
-                label = obj[0].toString();
-            } else {
-                label = obj[0].toString();
-            }
-
-            // ✅ Correct index usage
-            double income = obj[1] != null ? ((Number) obj[1]).doubleValue() : 0;
-            double balance = obj[2] != null ? ((Number) obj[2]).doubleValue() : 0;
-            long count = obj[3] != null ? ((Number) obj[3]).longValue() : 0;
-
-            list.add(new RevenueDTO(label, income, balance));
-        }
-        return list;
-    }
-
     public List<TaskDTO> getPendingTasks() {
         List<CustomerPurchases> purchases = purchaseRepo.findPendingTasks();
         List<TaskDTO> tasks = new ArrayList<>(List.of());
@@ -265,28 +225,12 @@ public class PurchaseServiceImpl implements PurchaseService {
         return tasks;
     }
 
+    @Override
     public List<CustomerPurchases> getRecentTasks() {
             List<String> statuses = List.of("COMPLETED", "DELIVERED", "CANCELLED");
         LocalDateTime fromDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).minusDays(5);
 
         return purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
-    }
-
-    @Override
-    public CustomerPurchases updateOrderStatus(long purchaseId, String updatedOrderStatus) {
-        CustomerPurchases purchase = purchaseRepo.findById(purchaseId).orElseThrow(() -> new RuntimeException("No Purchase available"));
-        purchase.setOrderStatus(updatedOrderStatus);
-        return purchaseRepo.save(purchase);
-
-    }
-
-    @Override
-    public CustomerPurchases updatePaymentStatus(long purchaseId, String updatedPaymentStatus) {
-        CustomerPurchases purchase = purchaseRepo.findById(purchaseId).orElseThrow(() -> new RuntimeException("No Purchase available"));
-        purchase.setPaymentStatus(updatedPaymentStatus);
-        purchase.setBalance(0);
-
-        return purchaseRepo.save(purchase);
     }
 
     @Override
@@ -298,27 +242,5 @@ public class PurchaseServiceImpl implements PurchaseService {
         newPurchase.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 
         return purchaseRepo.save(newPurchase);
-    }
-
-    boolean isPriceUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
-        return newPurchase.getPrice() == oldPurchase.getPrice();
-    }
-
-    boolean isAdvanceUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
-        return newPurchase.getAdvancePaid() == oldPurchase.getAdvancePaid();
-    }
-
-    boolean isPaymentMethodUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
-        return Objects.equals(newPurchase.getPaymentMethod(), oldPurchase.getPaymentMethod());
-    }
-    boolean isOrderStausUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
-        return Objects.equals(newPurchase.getOrderStatus(), oldPurchase.getOrderStatus());
-    }
-
-    boolean isPaymentStatusUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
-        return Objects.equals(newPurchase.getPaymentStatus(), oldPurchase.getPaymentStatus());
-    }
-    boolean isRemarkUpdated(CustomerPurchases newPurchase, CustomerPurchases oldPurchase){
-        return Objects.equals(newPurchase.getRemarks(), oldPurchase.getRemarks());
     }
 }

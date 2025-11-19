@@ -1,6 +1,7 @@
 package com.crm.deshkarStudio.dto;
 
 import com.crm.deshkarStudio.model.Customer;
+import com.crm.deshkarStudio.model.PurchaseItems;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -8,6 +9,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @AllArgsConstructor
 @ToString
@@ -29,5 +31,7 @@ public class PurchaseDetailsDTO {
     private LocalDateTime updatedDate;
     private String updatedBy;
     private String remarks;
+
+    private List<PurchaseItems> items;
 
 }
