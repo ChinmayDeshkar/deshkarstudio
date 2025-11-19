@@ -55,7 +55,8 @@ public class CustomerServiceImpl implements CustomerService {
                 "customerName", customer.getCustomerName(),
                 "email", customer.getEmail(),
                 "phoneNumber", customer.getPhoneNumber(),
-                "address", customer.getAddress()
+                "address", customer.getAddress(),
+                "purchaseCount", customer.getPurchaseCount()
         ));
     }
 }

@@ -49,51 +49,23 @@ public class PurchaseController {
 
 
     @GetMapping("/today")
-    public ResponseEntity<List<CustomerPurchases>> getTodayPurchases() {
+    public ResponseEntity<List<TaskDTO>> getTodayPurchases() {
         return ResponseEntity.ok(purchaseService.getTodayPurchases());
     }
 
     @GetMapping("/month")
-    public ResponseEntity<List<CustomerPurchases>> getThisMonthPurchases() {
+    public ResponseEntity<List<TaskDTO>> getThisMonthPurchases() {
         return ResponseEntity.ok(purchaseService.getPurchasesThisMonth());
     }
 
     @GetMapping("/range")
-    public ResponseEntity<List<PurchaseDTO>> getPurchasesByRange(
+    public ResponseEntity<List<TaskDTO>> getPurchasesByRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(LocalTime.MAX);
         return ResponseEntity.ok(purchaseService.getPurchasesByRange(start, end));
-    }
-
-    @GetMapping("/revenue-past-seven")
-    public List<RevenueDTO> getRevenuePerDay() {
-        return purchaseService.getRevenuePerDay();
-    }
-
-    @GetMapping("/revenue-month")
-    public List<RevenueDTO> getRevenuePerMonth() {
-        return purchaseService.getRevenuePerMonth();
-    }
-
-    @GetMapping("/revenue-year")
-    public List<RevenueDTO> getRevenuePerYear() {
-        return purchaseService.getRevenuePerYear();
-    }
-
-    @GetMapping("/revenue-range")
-    public List<RevenueDTO> getRevenueByRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
-    ) {
-        return purchaseService.getRevenueByRange(start, end);
-    }
-
-    @GetMapping("/revenue-payment-method")
-    public List<RevenueDTO> getTransactionCountByPaymentMethod() {
-        return purchaseService.getTransactionCountByPaymentMethod();
     }
 
     @GetMapping("/pending-tasks")
@@ -107,17 +79,6 @@ public class PurchaseController {
         return purchaseService.getRecentTasks();
     }
 
-    @PutMapping("/update-order-status/{purchaseId}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable long purchaseId, @RequestBody String updatedOrderStatus){
-        purchaseService.updateOrderStatus(purchaseId, updatedOrderStatus);
-        return ResponseEntity.ok(Map.of("Message", "Order status updated"));
-    }
-
-    @PutMapping("/update-payment-status/{purchaseId}")
-    public ResponseEntity<?> updatePaymentStatus(@PathVariable long purchaseId, @RequestBody String updatedPaymentStatus){
-        purchaseService.updatePaymentStatus(purchaseId, updatedPaymentStatus);
-        return ResponseEntity.ok(Map.of("Message", "Payment Status updated"));
-    }
     @PutMapping("/update/{id}")
     public ResponseEntity<CustomerPurchases> updatePurchase(@PathVariable long id, @RequestBody CustomerPurchases purchase){
         return ResponseEntity.ok(purchaseService.updatePurchase(id, purchase));

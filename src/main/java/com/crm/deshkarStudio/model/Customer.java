@@ -36,4 +36,6 @@ public class Customer {
     @ToString.Exclude
     @JsonIgnore
     private List<CustomerPurchases> purchases;
+
+    private long purchaseCount = 0;
 }
