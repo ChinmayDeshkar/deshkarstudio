@@ -128,32 +128,32 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public List<PurchaseDetailsDTO> getPurchaseByCustId(long id) {
+    public List<TaskDTO> getPurchaseByCustId(long id) {
 
         List<CustomerPurchases> purchases = purchaseRepo.findByCustomerId(id);
-
-        List<PurchaseDetailsDTO> purchaseDTOS = new ArrayList<>();
-        for(CustomerPurchases purchase : purchases)
-        {
-            PurchaseDetailsDTO purchaseDetailsDTO = new PurchaseDetailsDTO(
-                    purchase.getPurchaseId(),
-                    purchase.getCustomer(),
-                    purchase.getPrice(),
-                    purchase.getPaymentMethod(),
-                    purchase.getPaymentStatus(),
-                    purchase.getOrderStatus(),
-                    purchase.getAdvancePaid(),
-                    purchase.getBalance(),
-                    purchase.getCreatedDate(),
-                    purchase.getUpdatedDate(),
-                    purchase.getUpdatedBy(),
-                    purchase.getRemarks(),
-                    purchase.getItems()
-            );
-            purchaseDTOS.add(purchaseDetailsDTO);
+        List<TaskDTO> tasks = new ArrayList<>(List.of());
+        for(CustomerPurchases purchase: purchases){
+            TaskDTO task = new TaskDTO();
+            task.setPurchaseId(purchase.getPurchaseId());
+            task.setCustomerName(purchase.getCustomer().getCustomerName());
+            task.setPhoneNumber(purchase.getCustomer().getPhoneNumber());
+            task.setPrice(purchase.getPrice());
+            task.setBalance(purchase.getBalance());
+            task.setPaymentStatus(purchase.getPaymentStatus());
+            task.setOrderStatus(purchase.getOrderStatus());
+            task.setRemark(purchase.getRemarks());
+            task.setDte_created(purchase.getCreatedDate());
+            tasks.add(task);
         }
 
-        return purchaseDTOS;
+        return tasks;
+    }
+
+    @Override
+    public List<TaskDTO> getPurchaseByPhoneNumber(String phoneNumber) {
+        Customer customer = customerRepo.findByPhoneNumber(phoneNumber).orElseThrow(() -> new RuntimeException("Purchase not found with phone number " + phoneNumber));
+        List<TaskDTO> tasks = getPurchaseByCustId(customer.getId());
+        return tasks;
     }
 
     private List<TaskDTO> mapToDTO(List<CustomerPurchases> purchases) {

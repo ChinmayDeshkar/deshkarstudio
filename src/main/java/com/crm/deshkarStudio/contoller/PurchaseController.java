@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.config.Task;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -43,8 +44,14 @@ public class PurchaseController {
     }
 
     @GetMapping("/cust-id/{id}")
-    public ResponseEntity<List<PurchaseDetailsDTO>> getPurchaseByCustId(@PathVariable long id) {
-        List<PurchaseDetailsDTO> dto = purchaseService.getPurchaseByCustId(id);
+    public ResponseEntity<List<TaskDTO>> getPurchaseByCustId(@PathVariable long id) {
+        List<TaskDTO> dto = purchaseService.getPurchaseByCustId(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/phone-number/{phoneNumber}")
+    public ResponseEntity<List<TaskDTO>> getPurchaseByPhoneNumber(@PathVariable String phoneNumber) {
+        List<TaskDTO> dto = purchaseService.getPurchaseByPhoneNumber(phoneNumber);
         return ResponseEntity.ok(dto);
     }
 
