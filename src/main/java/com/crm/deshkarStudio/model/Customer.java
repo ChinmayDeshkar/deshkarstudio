@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.lang.Nullable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,6 +38,6 @@ public class Customer {
     @ToString.Exclude
     @JsonIgnore
     private List<CustomerPurchases> purchases;
-    @NotNull
+    @Nullable
     private long purchaseCount = 0;
 }

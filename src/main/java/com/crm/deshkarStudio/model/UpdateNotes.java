@@ -1,6 +1,5 @@
 package com.crm.deshkarStudio.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +13,7 @@ import java.time.ZoneId;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class PurchaseHistory {
+public class UpdateNotes {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

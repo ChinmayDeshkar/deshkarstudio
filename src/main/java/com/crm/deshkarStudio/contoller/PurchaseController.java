@@ -6,6 +6,7 @@ import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
 import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
+import com.crm.deshkarStudio.services.NoteService;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ import java.util.Map;
 public class PurchaseController {
 
     private final PurchaseService purchaseService;
-    private final CustomerPurchasesRepo purchaseRepo;
+    private final NoteService noteService;
 
     @PostMapping("/add")
     public ResponseEntity<?> addPurchase(@RequestBody CustomerPurchases purchase) {
@@ -84,4 +85,9 @@ public class PurchaseController {
         return ResponseEntity.ok(purchaseService.updatePurchase(id, purchase));
     }
 
+    @GetMapping("/notes/{id}")
+    public ResponseEntity<?> getNotes(@PathVariable long id){
+        noteService.getNotes(id);
+        return ResponseEntity.ok(noteService.getNotes(id));
+    }
 }

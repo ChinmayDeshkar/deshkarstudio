@@ -46,7 +46,7 @@ public class EmailServiceImpl implements EmailService{
                             + "<div style='background:#f0f0f0; padding:15px; border-radius:6px; margin-top:10px;'>"
                             + "<p style='margin:0;'><strong>Username:</strong> " + user.getUsername() + "</p>"
                             + "<p style='margin:0;'><strong>Temporary Password:</strong> "
-                            + "<span style='color:#d9534f; font-weight:bold;'>" + password + "</span></p>"
+                            + "<span style='color:#d9534f; font-weight:bold;'>" + "'" + password + "'" + "</span></p>"
                             + "</div>"
 
                             + "<p style='margin-top:20px;'>"
