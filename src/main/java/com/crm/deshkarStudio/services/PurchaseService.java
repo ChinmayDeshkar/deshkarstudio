@@ -20,7 +20,9 @@ public interface PurchaseService {
 
     PurchaseDetailsDTO getPurchaseById(long id);
 
-    List<PurchaseDetailsDTO> getPurchaseByCustId(long id);
+    List<TaskDTO> getPurchaseByCustId(long id);
+
+    List<TaskDTO> getPurchaseByPhoneNumber(String phoneNumber);
 
     List<TaskDTO> getTodayPurchases() ;
 
