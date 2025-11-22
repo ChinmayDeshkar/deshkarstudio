@@ -1,7 +1,7 @@
 package com.crm.deshkarStudio.services;
 
-import com.crm.deshkarStudio.dto.PurchaseDTO;
 import com.crm.deshkarStudio.dto.PurchaseDetailsDTO;
+import com.crm.deshkarStudio.dto.PurchaseUpdateRequest;
 import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.Customer;
@@ -34,5 +34,5 @@ public interface PurchaseService {
 
     List<CustomerPurchases> getRecentTasks();
 
-    CustomerPurchases updatePurchase(long purchaseId, CustomerPurchases purchase);
+    CustomerPurchases updatePurchase(long purchaseId, PurchaseUpdateRequest purchase);
 }

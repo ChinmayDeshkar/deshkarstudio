@@ -1,7 +1,7 @@
 package com.crm.deshkarStudio.contoller;
 
-import com.crm.deshkarStudio.dto.PurchaseDTO;
 import com.crm.deshkarStudio.dto.PurchaseDetailsDTO;
+import com.crm.deshkarStudio.dto.PurchaseUpdateRequest;
 import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
@@ -88,8 +88,10 @@ public class PurchaseController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<CustomerPurchases> updatePurchase(@PathVariable long id, @RequestBody CustomerPurchases purchase){
+    public ResponseEntity<CustomerPurchases> updatePurchase(@PathVariable long id, @RequestBody PurchaseUpdateRequest purchase){
+        log.info(String.valueOf(purchase));
         return ResponseEntity.ok(purchaseService.updatePurchase(id, purchase));
+//        return null;
     }
 
     @GetMapping("/notes/{id}")
