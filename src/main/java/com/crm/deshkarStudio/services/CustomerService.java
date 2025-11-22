@@ -6,7 +6,8 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 public interface CustomerService {
-    public boolean customerExists(String phoneNumber) ;
-    public CustomerPurchases addPurchase(Map<String, Object> payload) ;
-    public ResponseEntity<?> customerDetails(String phoneNumber);
+    boolean customerExists(String phoneNumber) ;
+    CustomerPurchases addPurchase(Map<String, Object> payload) ;
+    ResponseEntity<?> customerDetails(String phoneNumber);
+
 }

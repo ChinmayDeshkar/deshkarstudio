@@ -28,6 +28,8 @@ public class TaskDTO {
     private String paymentStatus;
     private String orderStatus;
     private String remark;
+
     private LocalDateTime dte_created;
+    private LocalDateTime dte_updated;
 
 }

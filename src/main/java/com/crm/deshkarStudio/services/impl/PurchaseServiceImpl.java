@@ -1,6 +1,7 @@
 package com.crm.deshkarStudio.services.impl;
 
 import com.crm.deshkarStudio.dto.PurchaseDetailsDTO;
+import com.crm.deshkarStudio.dto.PurchaseUpdateRequest;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.Customer;
 import com.crm.deshkarStudio.model.CustomerPurchases;
@@ -216,28 +217,100 @@ public class PurchaseServiceImpl implements PurchaseService {
             task.setOrderStatus(purchase.getOrderStatus());
             task.setRemark(purchase.getRemarks());
             task.setDte_created(purchase.getCreatedDate());
+            task.setDte_updated(purchase.getUpdatedDate());
             tasks.add(task);
         }
         return tasks;
     }
 
     @Override
-    public List<CustomerPurchases> getRecentTasks() {
+    public List<TaskDTO> getRecentTasks() {
             List<String> statuses = List.of("COMPLETED", "DELIVERED", "CANCELLED");
         LocalDateTime fromDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).minusDays(5);
 
-        return purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
+        List<CustomerPurchases> purchases = purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
+        List<TaskDTO> tasks = new ArrayList<>(List.of());
+        for(CustomerPurchases purchase: purchases){
+            TaskDTO task = new TaskDTO();
+            task.setPurchaseId(purchase.getPurchaseId());
+            task.setCustomerName(purchase.getCustomer().getCustomerName());
+            task.setPhoneNumber(purchase.getCustomer().getPhoneNumber());
+            task.setPrice(purchase.getPrice());
+            task.setBalance(purchase.getBalance());
+            task.setPaymentStatus(purchase.getPaymentStatus());
+            task.setOrderStatus(purchase.getOrderStatus());
+            task.setRemark(purchase.getRemarks());
+            task.setDte_created(purchase.getCreatedDate());
+            task.setDte_updated(purchase.getUpdatedDate());
+            tasks.add(task);
+        }
+        return tasks;
+//        return purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
     }
 
     @Override
-    public CustomerPurchases updatePurchase(long purchaseId, CustomerPurchases newPurchase) {
+    public CustomerPurchases updatePurchase(long purchaseId, PurchaseUpdateRequest newPurchase) {
 
+        // Load existing purchase (managed entity)
         CustomerPurchases oldPurchase = purchaseRepo.findById(purchaseId)
                 .orElseThrow(() -> new RuntimeException("PurchaseId not found: " + purchaseId));
+
+        List<String> notes = addNotes(newPurchase, oldPurchase);
+
+        // ----------------------------------------------------
+        // FIX: Update customer WITHOUT saving detached entity
+        // ----------------------------------------------------
+        if (newPurchase.isCustomerUpdated()) {
+            Customer existingCustomer = oldPurchase.getCustomer();  // managed entity
+
+            Customer updatedData = newPurchase.getCustomer();
+
+            existingCustomer.setCustomerName(updatedData.getCustomerName());
+            existingCustomer.setPhoneNumber(updatedData.getPhoneNumber());
+            existingCustomer.setAddress(updatedData.getAddress());
+            existingCustomer.setEmail(updatedData.getEmail());
+
+            // DO NOT call customerRepo.save() here!
+        }
+
+        // Update simple fields
+        oldPurchase.setPrice(newPurchase.getPrice());
+        oldPurchase.setPaymentMethod(newPurchase.getPaymentMethod());
+        oldPurchase.setPaymentStatus(newPurchase.getPaymentStatus());
+        oldPurchase.setOrderStatus(newPurchase.getOrderStatus());
+        oldPurchase.setAdvancePaid(newPurchase.getAdvancePaid());
+        oldPurchase.setBalance(newPurchase.getBalance());
+        oldPurchase.setRemarks(newPurchase.getRemarks());
+        oldPurchase.setUpdatedBy(newPurchase.getUpdatedBy());
+        oldPurchase.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
+
+        // ----------------------------
+        // Items Update (Correct way)
+        // ----------------------------
+        oldPurchase.getItems().clear();
+
+        for (PurchaseItems item : newPurchase.getItems()) {
+            item.setItemId(null);
+            item.setPurchase(oldPurchase);
+            oldPurchase.getItems().add(item);
+        }
+
+        CustomerPurchases saved = purchaseRepo.save(oldPurchase);
+
+        // Save notes
+        for (String n : notes) {
+            noteService.addUpdateNote(saved, n);
+        }
+
+        return saved;
+    }
+
+    List<String> addNotes(PurchaseUpdateRequest newPurchase, CustomerPurchases oldPurchase){
         List<String> notes = new ArrayList<>();
 
         // --- CHECK CHANGES ---
         if (!Objects.equals(oldPurchase.getOrderStatus(), newPurchase.getOrderStatus())) {
+
             notes.add("Order status updated | "
                     + oldPurchase.getOrderStatus() + " → " + newPurchase.getOrderStatus());
         }
@@ -252,50 +325,11 @@ public class PurchaseServiceImpl implements PurchaseService {
                     + oldPurchase.getAdvancePaid() + " → " + newPurchase.getAdvancePaid());
         }
 
-//        if (!Objects.equals(oldPurchase.getBalance(), newPurchase.getBalance())) {
-//            notes.add("Balance updated | "
-//                    + oldPurchase.getBalance() + " → " + newPurchase.getBalance());
-//        }
-
         if (!Objects.equals(oldPurchase.getRemarks(), newPurchase.getRemarks())) {
             notes.add("Remarks updated");
         }
 
-        // Update simple fields
-        oldPurchase.setCustomer(newPurchase.getCustomer());
-        oldPurchase.setPrice(newPurchase.getPrice());
-        oldPurchase.setPaymentMethod(newPurchase.getPaymentMethod());
-        oldPurchase.setPaymentStatus(newPurchase.getPaymentStatus());
-        oldPurchase.setOrderStatus(newPurchase.getOrderStatus());
-        oldPurchase.setAdvancePaid(newPurchase.getAdvancePaid());
-        oldPurchase.setBalance(newPurchase.getBalance());
-        oldPurchase.setRemarks(newPurchase.getRemarks());
-        oldPurchase.setUpdatedBy(newPurchase.getUpdatedBy());
-        oldPurchase.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
-
-        // ----------------------------
-        // FIX THE ORPHAN REMOVAL ISSUE
-        // ----------------------------
-
-        // 1. Clear existing items
-        oldPurchase.getItems().clear();
-
-        // 2. Add new items one-by-one
-        for (PurchaseItems item : newPurchase.getItems()) {
-            item.setItemId(null);           // Force new item creation OR you can check if it's existing
-            item.setPurchase(oldPurchase);  // Set back-reference
-            oldPurchase.getItems().add(item);
-        }
-
-        CustomerPurchases saved = purchaseRepo.save(oldPurchase);
-
-        // --- SAVE NOTES ---
-        for (String n : notes) {
-            noteService.addUpdateNote(saved, n);
-        }
-
-        return saved;
+        return notes;
     }
-
 
 }
