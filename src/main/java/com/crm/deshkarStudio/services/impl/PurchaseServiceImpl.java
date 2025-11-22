@@ -5,9 +5,11 @@ import com.crm.deshkarStudio.dto.PurchaseUpdateRequest;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.Customer;
 import com.crm.deshkarStudio.model.CustomerPurchases;
+import com.crm.deshkarStudio.model.Invoice;
 import com.crm.deshkarStudio.model.PurchaseItems;
 import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.repo.CustomerRepo;
+import com.crm.deshkarStudio.services.InvoiceService;
 import com.crm.deshkarStudio.services.NoteService;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
@@ -32,6 +34,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final CustomerRepo customerRepo;
     private final CustomerPurchasesRepo purchaseRepo;
     private final NoteService noteService;
+    private final InvoiceService invoiceService;
 
     @Override
     public ResponseEntity<?> addPurchase(CustomerPurchases purchase) {
@@ -302,6 +305,14 @@ public class PurchaseServiceImpl implements PurchaseService {
             noteService.addUpdateNote(saved, n);
         }
 
+        // If OrderStatus == READY -> generate invoice
+        if (newPurchase.getOrderStatus().equals("READY")) {
+            try {
+                invoiceService.generateInvoice(newPurchase.getPurchaseId());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         return saved;
     }
 

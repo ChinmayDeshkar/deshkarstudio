@@ -73,7 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/h2-console/**", "api/ping", "api/test").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/employee/**").hasAnyRole("EMPLOYEE", "ADMIN")
-                        .requestMatchers("/api/user/**", "/api/purchases/**", "/api/customers/**").authenticated()
+                        .requestMatchers("/api/user/**", "/api/purchases/**", "/api/customers/**", "/api/invoice/**").authenticated()
 //                        .requestMatchers("/api/customers/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -85,7 +85,11 @@ public class SecurityConfig {
         CorsConfiguration cors = new CorsConfiguration();
         cors.addAllowedOrigin(allowedOrigins);
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(Arrays.asList("*"));
+        cors.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Accept"
+        ));
         cors.setAllowCredentials(true);
         cors.setExposedHeaders(Arrays.asList("Authorization"));
         http.cors(corsConfigurer -> corsConfigurer.configurationSource(request -> cors));
