@@ -217,17 +217,35 @@ public class PurchaseServiceImpl implements PurchaseService {
             task.setOrderStatus(purchase.getOrderStatus());
             task.setRemark(purchase.getRemarks());
             task.setDte_created(purchase.getCreatedDate());
+            task.setDte_updated(purchase.getUpdatedDate());
             tasks.add(task);
         }
         return tasks;
     }
 
     @Override
-    public List<CustomerPurchases> getRecentTasks() {
+    public List<TaskDTO> getRecentTasks() {
             List<String> statuses = List.of("COMPLETED", "DELIVERED", "CANCELLED");
         LocalDateTime fromDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).minusDays(5);
 
-        return purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
+        List<CustomerPurchases> purchases = purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
+        List<TaskDTO> tasks = new ArrayList<>(List.of());
+        for(CustomerPurchases purchase: purchases){
+            TaskDTO task = new TaskDTO();
+            task.setPurchaseId(purchase.getPurchaseId());
+            task.setCustomerName(purchase.getCustomer().getCustomerName());
+            task.setPhoneNumber(purchase.getCustomer().getPhoneNumber());
+            task.setPrice(purchase.getPrice());
+            task.setBalance(purchase.getBalance());
+            task.setPaymentStatus(purchase.getPaymentStatus());
+            task.setOrderStatus(purchase.getOrderStatus());
+            task.setRemark(purchase.getRemarks());
+            task.setDte_created(purchase.getCreatedDate());
+            task.setDte_updated(purchase.getUpdatedDate());
+            tasks.add(task);
+        }
+        return tasks;
+//        return purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
     }
 
     @Override
@@ -292,6 +310,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         // --- CHECK CHANGES ---
         if (!Objects.equals(oldPurchase.getOrderStatus(), newPurchase.getOrderStatus())) {
+
             notes.add("Order status updated | "
                     + oldPurchase.getOrderStatus() + " → " + newPurchase.getOrderStatus());
         }

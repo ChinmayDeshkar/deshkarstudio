@@ -83,7 +83,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/recent-tasks")
-    public List<CustomerPurchases> getRecentTasks() {
+    public List<TaskDTO> getRecentTasks() {
         return purchaseService.getRecentTasks();
     }
 

@@ -32,7 +32,7 @@ public interface PurchaseService {
 
     List<TaskDTO> getPendingTasks();
 
-    List<CustomerPurchases> getRecentTasks();
+    List<TaskDTO> getRecentTasks();
 
     CustomerPurchases updatePurchase(long purchaseId, PurchaseUpdateRequest purchase);
 }
