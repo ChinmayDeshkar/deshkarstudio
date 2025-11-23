@@ -28,5 +28,8 @@ public class Products {
     private double price;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime dte_created = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime dte_updated = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+    private boolean isActive = true;
 
 }
