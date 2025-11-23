@@ -3,14 +3,12 @@ package com.crm.deshkarStudio.services.impl;
 import com.crm.deshkarStudio.dto.PurchaseDetailsDTO;
 import com.crm.deshkarStudio.dto.PurchaseUpdateRequest;
 import com.crm.deshkarStudio.dto.TaskDTO;
-import com.crm.deshkarStudio.model.Customer;
-import com.crm.deshkarStudio.model.CustomerPurchases;
-import com.crm.deshkarStudio.model.Invoice;
-import com.crm.deshkarStudio.model.PurchaseItems;
+import com.crm.deshkarStudio.model.*;
 import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.repo.CustomerRepo;
 import com.crm.deshkarStudio.services.InvoiceService;
 import com.crm.deshkarStudio.services.NoteService;
+import com.crm.deshkarStudio.services.PaymentService;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,12 +33,14 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final CustomerPurchasesRepo purchaseRepo;
     private final NoteService noteService;
     private final InvoiceService invoiceService;
+    private final PaymentService paymentService;
+
 
     @Override
     public ResponseEntity<?> addPurchase(CustomerPurchases purchase) {
         Customer payloadCustomer = purchase.getCustomer();
 
-        log.info("Coming here..");
+        log.info("Adding new Purchase : " + purchase);
 
         // 1. Check if customer exists
         Customer customer = customerRepo.findByPhoneNumber(payloadCustomer.getPhoneNumber())
@@ -97,6 +97,8 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         // 5. Send to history
         noteService.addUpdateNote(savedPurchase, "Job created");
+
+        paymentService.addPayment(purchase.getPurchaseId(), purchase.getAdvancePaid(), purchase.getPaymentMethod());
 
         return ResponseEntity.ok(
                 Map.of("message", "Purchase added successfully",
@@ -260,9 +262,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         List<String> notes = addNotes(newPurchase, oldPurchase);
 
-        // ----------------------------------------------------
-        // FIX: Update customer WITHOUT saving detached entity
-        // ----------------------------------------------------
         if (newPurchase.isCustomerUpdated()) {
             Customer existingCustomer = oldPurchase.getCustomer();  // managed entity
 
@@ -272,10 +271,9 @@ public class PurchaseServiceImpl implements PurchaseService {
             existingCustomer.setPhoneNumber(updatedData.getPhoneNumber());
             existingCustomer.setAddress(updatedData.getAddress());
             existingCustomer.setEmail(updatedData.getEmail());
-
-            // DO NOT call customerRepo.save() here!
         }
 
+        double amount = newPurchase.getAdvancePaid() - oldPurchase.getAdvancePaid();
         // Update simple fields
         oldPurchase.setPrice(newPurchase.getPrice());
         oldPurchase.setPaymentMethod(newPurchase.getPaymentMethod());
@@ -287,9 +285,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         oldPurchase.setUpdatedBy(newPurchase.getUpdatedBy());
         oldPurchase.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 
-        // ----------------------------
-        // Items Update (Correct way)
-        // ----------------------------
         oldPurchase.getItems().clear();
 
         for (PurchaseItems item : newPurchase.getItems()) {
@@ -299,6 +294,9 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         CustomerPurchases saved = purchaseRepo.save(oldPurchase);
+        if(amount > 0)
+            paymentService.addPayment(saved.getPurchaseId(), amount, saved.getPaymentMethod());
+
 
         // Save notes
         for (String n : notes) {
@@ -341,6 +339,10 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         return notes;
+    }
+
+    Payment addPayment(long purchaseId, double amount, String paymentType){
+        return null;
     }
 
 }

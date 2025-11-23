@@ -88,7 +88,15 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .orElseThrow(() -> new RuntimeException("Purchase not found"));
 
         Invoice inv = invoiceRepo.findByPurchaseId(purchaseId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+                .orElseGet(() -> {
+                    log.error("Invoice not found!! Purchase id: " + purchaseId);
+
+                    try {
+                        return generateInvoice(purchaseId);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
 
         return InvoicePdfGenerator.generatePDF(inv, p);
     }
