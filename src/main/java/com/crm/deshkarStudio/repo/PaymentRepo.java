@@ -22,7 +22,7 @@ public interface PaymentRepo extends JpaRepository<Payment, Long> {
 
 
     // Daily
-    @Query("SELECT SUM(p.amount) FROM Payment p WHERE DATE(p.paymentDate) = CURRENT_DATE")
+    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.paymentDate = CURRENT_DATE")
     Double getTodayIncome();
 
     // Weekly (last 7 days including today)
