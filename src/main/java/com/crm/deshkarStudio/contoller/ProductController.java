@@ -5,9 +5,11 @@ import com.crm.deshkarStudio.repo.ProductRepo;
 import com.crm.deshkarStudio.services.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -19,7 +21,7 @@ public class ProductController {
 
     @GetMapping("/all")
     public List<Products> getAll(){
-        return productService.getAllProducts();
+        return productService.getActiveProducts();
     }
 
     @PostMapping("/add")
@@ -35,4 +37,21 @@ public class ProductController {
          return null;
     }
 
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateById(@PathVariable long id, @RequestBody Products product){
+        productService.updateProductById(id, product);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Product updated"
+        ));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable long id){
+        productService.deleteProductById(id);
+        return ResponseEntity.ok(Map.of(
+                "message", "Product deleted",
+                "id", id
+        ));
+    }
 }
