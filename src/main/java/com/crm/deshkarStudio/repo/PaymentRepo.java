@@ -30,8 +30,8 @@ public interface PaymentRepo extends JpaRepository<Payment, Long> {
     Double getWeeklyIncome(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
     // Monthly (current month)
-    @Query("SELECT SUM(p.amount) FROM Payment p WHERE FUNCTION('MONTH', p.paymentDate) = FUNCTION('MONTH', CURRENT_DATE) AND FUNCTION('YEAR', p.paymentDate) = FUNCTION('YEAR', CURRENT_DATE)")
-    Double getMonthlyIncome();
+    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.paymentDate BETWEEN :start AND :end")
+    Double getMonthlyIncome(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
     // Custom date range
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.paymentDate BETWEEN :start AND :end")

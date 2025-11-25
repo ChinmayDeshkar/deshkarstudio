@@ -49,7 +49,10 @@ public class PaymentServiceImpl implements PaymentService {
 
     // ====== Monthly Income ======
     public Double getMonthlyIncome() {
-        return paymentRepo.getMonthlyIncome() != null ? paymentRepo.getMonthlyIncome() : 0.0;
+        LocalDate start = LocalDate.now().withDayOfMonth(1);
+        LocalDate end = LocalDate.now();
+
+        return paymentRepo.getMonthlyIncome(start, end);
     }
 
     // ====== Income in Custom Range ======

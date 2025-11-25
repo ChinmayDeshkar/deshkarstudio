@@ -6,11 +6,13 @@ import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.repo.CustomerRepo;
 import com.crm.deshkarStudio.services.CustomerService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
@@ -48,6 +50,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public ResponseEntity<?> customerDetails(String phoneNumber) {
+        log.debug("Customer exists, getting details...");
         Customer customer = customerRepo.findByPhoneNumber(phoneNumber).orElseThrow(() -> new RuntimeException("Customer doesn't exists"));
         return ResponseEntity.ok(Map.of(
                 "exists", true,

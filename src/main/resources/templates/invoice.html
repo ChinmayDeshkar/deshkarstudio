@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Invoice</title>
+
+    <style>
+        @page {
+            size: 874px 1240px;
+            margin: 0;
+        }
+
+        html, body {
+            width: 874px;
+            height: 1240px;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            width: 874px;
+            height: 1240px;
+            position: relative;
+        }
+
+        .bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 874px;
+            height: 1240px;
+            z-index: 1;
+        }
+
+        /* HEADER */
+        .logo {
+            position: absolute;
+            top: 62px;
+            left: 0px;
+            width: 370px;
+            z-index: 10;
+        }
+
+        .studio-name {
+            position: absolute;
+            top: 120px;
+            left: 365px;
+            color: #b9793d;
+            font-size: 42px;
+            font-weight: bold;
+        }
+
+        .studio-sub {
+            position: absolute;
+            top: 175px;
+            left: 460px;
+            color: #b9793d;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .address {
+            position: absolute;
+            top: 232px;
+            left: 330px;
+            width: 500px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .jur {
+            position: absolute;
+            top: 70px;
+            right: 60px;
+            font-size: 15px;
+        }
+
+        /* separators */
+        /* line separators */
+        .sep1 {
+            position: absolute;
+            top: 215px;
+            /* left: 500px; */
+            right: 35px;
+            width: 513px;
+            height: 2px;
+            border-bottom: 1px solid #000;
+        }
+
+        .sep2 {
+            position: absolute;
+            top: 283px;
+            /* left: 65px; */
+            right: 35px;
+            width: 513px;
+            height: 2px;
+            border-bottom: 1px solid #000;
+        }
+
+        /* Bill Info */
+        .bill-info {
+            position: absolute;
+            top: 320px;
+            left: 65px;
+            width: 770px;
+            font-size: 18px;
+        }
+
+        .customer {
+            position: absolute;
+            top: 365px;
+            left: 65px;
+            font-size: 18px;
+        }
+
+        /* Items Table (NO ABSOLUTE POSITION!!) */
+        .items-wrapper {
+            position: absolute;
+            top: 420px;
+            left: 65px;
+            width: 770px;
+            border: 1px solid black
+        }
+
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 18px;
+        }
+
+        .items th {
+            border: 1px solid black;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .items td {
+            padding: 6px 4px;
+            text-align: center;
+        }
+
+        .amt {
+            text-align: right;
+        }
+
+        /* Total Table (NO ABSOLUTE !!!) */
+        .total-wrapper {
+            position: absolute;
+            bottom: 200px;
+            right: 65px;
+        }
+
+        table.total-table {
+            border-collapse: collapse;
+            width: 260px;
+            font-size: 20px;
+        }
+
+        .total-table td {
+            border: 1px solid black;
+            padding: 6px;
+        }
+
+        /* FOOTER */
+        .footer {
+            position: absolute;
+            bottom: 96px;
+            left: 207px;
+        }
+
+        .footer-for {
+            position: absolute;
+            bottom: 100px;
+            right: 65px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+<div class="page">
+
+    <img th:src="${bgImage}" class="bg"/>
+
+    <img th:src="${logoImage}" class="logo"/>
+
+    <div class="studio-name">Deshkar Photo Studio</div>
+    <div class="studio-sub">Digital Photo Lab</div>
+
+    <div class="address">
+        Socialist Chowk, Main Road, Wardha - 442001<br/>
+        Email : deshkarstudio1920@gmail.com &nbsp;&nbsp; Mob.: 8149951923
+    </div>
+
+    <div class="jur">Subject to Wardha Jurisdiction</div>
+
+    <div class="sep1"></div>
+    <div class="sep2"></div>
+
+    <div class="bill-info">
+        <b>Bill No.:</b> <span th:text="${invoice.invoiceNumber}"></span>
+        <span style="float:right;">
+            <b>Date:</b> <span th:text="${#temporals.format(invoice.invoiceDate,'dd-MM-yyyy')}"></span>
+        </span>
+    </div>
+
+    <div class="customer">
+        <b>Shri./Smt.</b> <span th:text="${invoice.customerName}"></span>
+    </div>
+
+    <!-- Items -->
+    <div class="items-wrapper">
+        <table class="items">
+            <thead>
+            <tr>
+                <th style="width:80px;">Sr.No.</th>
+                <th style="width:480px;">Description</th>
+                <th style="width:150px;text-align:right;">Amount</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <tr th:each="it, i : ${purchase.items}">
+                <td th:text="${i.index + 1}" style="border-right: 1px solid black;">dfdf</td>
+                <td th:text="${it.product != null ? it.product.productName : it.itemName}" style="border-right: 1px solid black;">dsfsdf</td>
+                <td class="amt" th:text="${it.itemPrice}">343</td>
+            </tr>
+
+            <!-- Fill Blank rows -->
+            <tr th:each="x : ${#numbers.sequence(purchase.items.size()+1, 12)}">
+                <td style="border-right: 1px solid black;">&nbsp;</td>
+                <td style="border-right: 1px solid black;"></td>
+                <td style="border-right: 1px solid black;"></td>
+            </tr>
+            <tr>
+                <td style="border-right: 1px solid black;"></td>
+                <td style="border-right: 1px solid black; text-align: right">Total Amount</td>
+                <td th:text="${invoice.totalAmount}" style="border-top: 1px solid black"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">Thank you !</div>
+
+    <div class="footer-for">For : Deshkar Photo Studio</div>
+
+</div>
+</body>
+</html>
