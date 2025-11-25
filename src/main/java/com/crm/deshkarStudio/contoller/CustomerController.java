@@ -4,11 +4,13 @@ import com.crm.deshkarStudio.model.CustomerPurchases;
 import com.crm.deshkarStudio.services.CustomerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/customers")
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ public class CustomerController {
 
     @GetMapping("/check")
     public ResponseEntity<?> checkCustomer(@RequestParam String phoneNumber) {
+        log.debug("Checking customer details for number: " + phoneNumber);
         boolean exists = customerService.customerExists(phoneNumber);
 
         if (exists) {

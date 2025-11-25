@@ -1,0 +1,155 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.page {
+    position: relative;
+    width: 924px;
+    height: 1240px; /* EXACT size of your template */
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Background */
+.bg {
+    position: absolute;
+    width: 924px;
+    height: 1240px;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* Logo */
+.logo {
+    position: absolute;
+    width: 180px;
+    top: 90px;
+    left: 75px;
+    z-index: 5;
+}
+
+/* Header text */
+.studio-name {
+    position: absolute;
+    top: 115px;
+    left: 340px;
+    font-size: 42px;
+    color: #b9793d;
+    font-weight: bold;
+    z-index: 5;
+}
+
+.studio-sub {
+    position: absolute;
+    top: 170px;
+    left: 395px;
+    font-size: 28px;
+    color: #b9793d;
+    font-weight: bold;
+    z-index: 5;
+}
+
+.address {
+    position: absolute;
+    top: 225px;
+    left: 330px;
+    font-size: 18px;
+    text-align: center;
+    width: 500px;
+    z-index: 5;
+}
+
+.jur {
+    position: absolute;
+    top: 65px;
+    right: 60px;
+    font-size: 16px;
+    z-index: 5;
+}
+
+/* Bill details */
+.bill-info {
+    position: absolute;
+    top: 345px;
+    left: 65px;
+    width: 800px;
+    font-size: 20px;
+    z-index: 5;
+}
+
+.bill-no {
+    float: left;
+}
+
+.bill-date {
+    float: right;
+}
+
+.customer-line {
+    position: absolute;
+    top: 395px;
+    left: 65px;
+    font-size: 20px;
+    width: 800px;
+    z-index: 5;
+}
+
+/* Items table */
+.items {
+    position: absolute;
+    top: 465px;
+    left: 65px;
+    width: 800px;
+    border-collapse: collapse;
+    font-size: 20px;
+    z-index: 5;
+}
+
+.items th {
+    border-bottom: 2px solid #000;
+    padding-bottom: 5px;
+}
+
+.items td {
+    padding: 6px 4px;
+    border-bottom: 1px solid #ccc;
+}
+
+.sr { width: 80px; }
+.desc { width: 480px; }
+.amt { width: 150px; text-align: right; }
+
+/* Totals */
+.totals {
+    position: absolute;
+    bottom: 200px;
+    right: 65px;
+    font-size: 22px;
+    font-weight: bold;
+    z-index: 5;
+}
+
+.total-label { margin-right: 30px; }
+
+/* Footer */
+.footer-text {
+    position: absolute;
+    bottom: 100px;
+    left: 65px;
+    font-size: 20px;
+    z-index: 5;
+}
+
+.footer-for {
+    position: absolute;
+    bottom: 100px;
+    right: 65px;
+    font-size: 22px;
+    font-weight: bold;
+    z-index: 5;
+}
+body{
+    background-color: black;
+}
