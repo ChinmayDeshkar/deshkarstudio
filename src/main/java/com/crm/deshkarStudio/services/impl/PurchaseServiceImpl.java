@@ -231,7 +231,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public List<TaskDTO> getRecentTasks() {
             List<String> statuses = List.of("COMPLETED", "DELIVERED", "CANCELLED");
-        LocalDateTime fromDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).minusDays(5);
+        LocalDateTime fromDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).minusDays(2);
 
         List<CustomerPurchases> purchases = purchaseRepo.findRecentCompletedOrders(statuses, fromDate);
         List<TaskDTO> tasks = new ArrayList<>(List.of());
