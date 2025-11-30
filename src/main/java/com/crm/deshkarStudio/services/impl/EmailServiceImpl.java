@@ -17,9 +17,11 @@ import org.springframework.stereotype.Service;
 public class EmailServiceImpl implements EmailService{
 
     @Value("${app.mail.from}")
-    String mailFrom;
+    private String mailFrom;
     @Value("${app.mail.to}")
-    String mailTo;
+    private String[] mailTo;
+    @Value("${app.mail.cc}")
+    private String[] mailCC;
 
     private final JavaMailSender mailSender;
     private EmailServiceImpl(JavaMailSender mailSender){
@@ -95,45 +97,104 @@ public class EmailServiceImpl implements EmailService{
         }
     }
 
-    public void sendOtpEmail(String otp) {
+    public void sendOtpEmail(String otp, String username) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            String htmlContent =
-                    "<!DOCTYPE html>" +
-                            "<html>" +
-                            "<head>" +
-                            "<style>" +
-                            "body {font-family: Arial, sans-serif; color: #333;} " +
-                            ".container {max-width: 480px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;} " +
-                            ".title {font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #2c3e50;} " +
-                            ".otp {font-size: 28px; font-weight: bold; background: #1abc9c; color: #fff; padding: 10px 20px; border-radius: 6px; display: inline-block; margin: 20px 0;} " +
-                            ".message {font-size: 16px; margin-bottom: 30px;}" +
-                            ".footer {font-size: 13px; color: #777; margin-top: 20px;}" +
-                            "</style>" +
-                            "</head>" +
-                            "<body>" +
-                            "<div class='container'>" +
-                            "<div class='title'>Your One-Time Password (OTP)</div>" +
-                            "<div class='message'>Use the OTP below to complete your login verification:</div>" +
-                            "<div class='otp'>" + otp + "</div>" +
-                            "<div class='message'>This OTP is valid for the next 5 minutes. Please do not share it with anyone.</div>" +
-                            "<div class='footer'>If you didn’t request this email, please ignore it.</div>" +
-                            "</div>" +
-                            "</body>" +
-                            "</html>";
+            String htmlContent = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 0;
+                            background: #f4f6f8;
+                        }
+                        .container {
+                            max-width: 480px;
+                            background: #ffffff;
+                            margin: 30px auto;
+                            padding: 25px 30px;
+                            border-radius: 10px;
+                            box-shadow: 0px 4px 10px rgba(0,0,0,0.08);
+                        }
+                        .title {
+                            font-size: 22px;
+                            font-weight: 600;
+                            margin-bottom: 10px;
+                            color: #2c3e50;
+                        }
+                        .username {
+                            font-size: 16px;
+                            margin-bottom: 15px;
+                            color: #444;
+                        }
+                        .otp-box {
+                            font-size: 32px;
+                            font-weight: bold;
+                            padding: 15px;
+                            text-align: center;
+                            background: #007bff;
+                            color: #ffffff;
+                            border-radius: 8px;
+                            margin: 25px 0;
+                            letter-spacing: 5px;
+                        }
+                        .info {
+                            font-size: 15px;
+                            color: #555;
+                            margin-bottom: 25px;
+                            line-height: 1.5;
+                        }
+                        .footer {
+                            font-size: 12px;
+                            color: #777;
+                            text-align: center;
+                            margin-top: 20px;
+                            border-top: 1px solid #eee;
+                            padding-top: 10px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="title">Login Verification Required</div>
+                        <div class="username">Hi <b>Ashay/Prashant</b>,</div>
+                        <div class="info">
+                            We received a login request for %s account. Use the OTP below to proceed with secure access:
+                        </div>
+                        <div class="otp-box">%s</div>
+                        <div class="info">
+                            This OTP is valid only for the next <b>5 minutes</b>.
+                            Please do not share it with anyone for security reasons.
+                        </div>
+                        <div class="footer">
+                            If you did not initiate this request, please ignore this email or contact support immediately.
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(username, otp);
 
             helper.setTo(mailTo);
             helper.setFrom(mailFrom);
-            helper.setSubject("OTP Verification");
+            helper.setCc(mailCC);
+
+            helper.setSubject("OTP Login Verification - Secure Access");
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            log.info("Email for OTP sent to {} from {}", mailTo, mailFrom);
+            log.info("OTP Email sent to {} (User: {})", mailTo, username);
+
         } catch (Exception e) {
-            log.error("Failed to send OTP email: {}", e.getMessage());
+            log.error("Failed to send OTP email:", e);
         }
     }
+
 
 }
