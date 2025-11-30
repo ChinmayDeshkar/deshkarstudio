@@ -8,6 +8,6 @@ public interface EmailService {
 
     void createAndSendMailForNewUser(String to, String subject, User user, String password);
 
-    void sendOtpEmail(String otp);
+    void sendOtpEmail(String otp, String username);
 
 }

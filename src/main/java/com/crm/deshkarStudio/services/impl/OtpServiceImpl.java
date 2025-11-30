@@ -28,7 +28,7 @@ public class OtpServiceImpl implements OtpService {
         otpRepo.deleteByUsername(username); // clean old OTP
         otpRepo.save(new Otp(null, username, otp, expiry));
         System.out.println(otp);
-        emailService.sendOtpEmail(otp);
+        emailService.sendOtpEmail(otp, username);
         return otp;
     }
 
