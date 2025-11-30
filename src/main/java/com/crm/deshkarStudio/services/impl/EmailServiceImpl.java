@@ -16,6 +16,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailServiceImpl implements EmailService{
 
+    @Value("${app.mail.from}")
+    String mailFrom;
+    @Value("${app.mail.to}")
+    String mailTo;
+
     private final JavaMailSender mailSender;
     private EmailServiceImpl(JavaMailSender mailSender){
         this.mailSender = mailSender;
@@ -79,8 +84,8 @@ public class EmailServiceImpl implements EmailService{
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo("itschinmayd@gmail.com");
-            helper.setFrom("deshkarchinmay42@gmail.com");
+            helper.setTo(mailTo);
+            helper.setFrom(mailFrom);
             helper.setSubject(subject);
             helper.setText(htmlContent, true); // HTML
             mailSender.send(message);
@@ -91,18 +96,44 @@ public class EmailServiceImpl implements EmailService{
     }
 
     public void sendOtpEmail(String otp) {
-        try{
+        try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo("itschinmayd@gmail.com");
-            helper.setFrom("deshkarchinmay42@gmail.com");
-            helper.setSubject("OTP for login");
-            helper.setText("OTP for your login: " + otp, true); // HTML
+
+            String htmlContent =
+                    "<!DOCTYPE html>" +
+                            "<html>" +
+                            "<head>" +
+                            "<style>" +
+                            "body {font-family: Arial, sans-serif; color: #333;} " +
+                            ".container {max-width: 480px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;} " +
+                            ".title {font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #2c3e50;} " +
+                            ".otp {font-size: 28px; font-weight: bold; background: #1abc9c; color: #fff; padding: 10px 20px; border-radius: 6px; display: inline-block; margin: 20px 0;} " +
+                            ".message {font-size: 16px; margin-bottom: 30px;}" +
+                            ".footer {font-size: 13px; color: #777; margin-top: 20px;}" +
+                            "</style>" +
+                            "</head>" +
+                            "<body>" +
+                            "<div class='container'>" +
+                            "<div class='title'>Your One-Time Password (OTP)</div>" +
+                            "<div class='message'>Use the OTP below to complete your login verification:</div>" +
+                            "<div class='otp'>" + otp + "</div>" +
+                            "<div class='message'>This OTP is valid for the next 5 minutes. Please do not share it with anyone.</div>" +
+                            "<div class='footer'>If you didn’t request this email, please ignore it.</div>" +
+                            "</div>" +
+                            "</body>" +
+                            "</html>";
+
+            helper.setTo(mailTo);
+            helper.setFrom(mailFrom);
+            helper.setSubject("OTP Verification");
+            helper.setText(htmlContent, true);
+
             mailSender.send(message);
-            log.info("Email for OTP sent to {}", "itschinmayd@gmail.com");
-        }
-        catch (Exception e){
-            log.error(e.toString());
+            log.info("Email for OTP sent to {} from {}", mailTo, mailFrom);
+        } catch (Exception e) {
+            log.error("Failed to send OTP email: {}", e.getMessage());
         }
     }
+
 }

@@ -37,9 +37,9 @@
         /* HEADER */
         .logo {
             position: absolute;
-            top: 62px;
-            left: 0px;
-            width: 370px;
+            top: 73px;
+            left: 95px;
+            width: 170px;
             z-index: 10;
         }
 
@@ -183,8 +183,6 @@
 <body>
 <div class="page">
 
-    <img th:src="${bgImage}" class="bg"/>
-
     <img th:src="${logoImage}" class="logo"/>
 
     <div class="studio-name">Deshkar Photo Studio</div>
@@ -218,16 +216,20 @@
             <tr>
                 <th style="width:80px;">Sr.No.</th>
                 <th style="width:480px;">Description</th>
-                <th style="width:150px;text-align:right;">Amount</th>
+                <th style="width:480px;">Quantity</th>
+                <th style="width:480px;">Price</th>
+                <th style="width:150px;text-align:right;">Total</th>
             </tr>
             </thead>
 
             <tbody>
 
-            <tr th:each="it, i : ${purchase.items}">
-                <td th:text="${i.index + 1}" style="border-right: 1px solid black;">dfdf</td>
-                <td th:text="${it.product != null ? it.product.productName : it.itemName}" style="border-right: 1px solid black;">dsfsdf</td>
-                <td class="amt" th:text="${it.itemPrice}">343</td>
+            <tr th:each="it, i : ${purchase.items}" style="border-bottom: 1px solid black;">
+                <td th:text="${i.index + 1}" style="border-right: 1px solid black;"></td>
+                <td th:text="${it.product != null ? it.product.productName : it.itemName}" style="border-right: 1px solid black;"></td>
+                <td class="amt" th:text="${it.quantity}" style="border-right: 1px solid black;"></td>
+                <td class="amt" th:text="${it.itemPrice}" style="border-right: 1px solid black;"></td>
+                <td class="amt" th:text="${it.total}" style=""></td>
             </tr>
 
             <!-- Fill Blank rows -->
@@ -235,11 +237,15 @@
                 <td style="border-right: 1px solid black;">&nbsp;</td>
                 <td style="border-right: 1px solid black;"></td>
                 <td style="border-right: 1px solid black;"></td>
+                <td style="border-right: 1px solid black;"></td>
+                <td style=""></td>
             </tr>
             <tr>
                 <td style="border-right: 1px solid black;"></td>
+                <td style="border-right: 1px solid black;"></td>
+                <td style="border-right: 1px solid black;"></td>
                 <td style="border-right: 1px solid black; text-align: right">Total Amount</td>
-                <td th:text="${invoice.totalAmount}" style="border-top: 1px solid black"></td>
+                <td th:text="${invoice.totalAmount}" style="border-top: 1px solid black;"></td>
             </tr>
             </tbody>
         </table>
