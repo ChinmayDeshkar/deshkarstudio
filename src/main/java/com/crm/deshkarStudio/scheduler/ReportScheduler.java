@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class ReportScheduler {
     private final SalesReportServiceImpl reportService;
 
-    // Schedule every day at 8 AM
-    @Scheduled(cron = "0 51 2 * * ?", zone = "Asia/Kolkata")
+    // Schedule every day at 10 PM
+    @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Kolkata")
     public void sendDailyReport() {
         log.debug("Hitting Scheduled job for daily report");
         reportService.sendDailySalesReport();
