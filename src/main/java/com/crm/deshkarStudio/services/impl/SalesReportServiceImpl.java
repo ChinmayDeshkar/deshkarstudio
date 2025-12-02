@@ -33,27 +33,34 @@ public class SalesReportServiceImpl {
         List<CustomerPurchases> todaysPurchases = purchaseRepository.findTodaysPurchases(startOfDay, endOfDay);
 
         if (todaysPurchases.isEmpty()) {
-            emailService.sendEmail("itschinmayd@gmail.com", "Daily Sales Report - " + today, "No sales today.");
+            emailService.sendEmail("itschinmayd@gmail.com",
+                    "Daily Sales Report - " + today,
+                    "No sales today.");
             return;
         }
 
-        // Total income and balance
-        double totalIncome = todaysPurchases.stream().mapToDouble(CustomerPurchases::getAdvancePaid).sum();
-        double totalBalance = todaysPurchases.stream().mapToDouble(CustomerPurchases::getBalance).sum();
+        // Total revenue and balance
+        double totalRevenue = todaysPurchases.stream()
+                .mapToDouble(CustomerPurchases::getAdvancePaid)
+                .sum();
 
-        // Customers visited today
-        long customersVisited = todaysPurchases.stream().map(CustomerPurchases::getCustomer).distinct().count();
+        double totalBalance = todaysPurchases.stream()
+                .mapToDouble(CustomerPurchases::getBalance)
+                .sum();
 
-        // Pending tasks
-        List<CustomerPurchases> pendingTasks = todaysPurchases.stream()
-                .filter(p -> !"COMPLETED".equalsIgnoreCase(p.getOrderStatus()) || !"PAID".equalsIgnoreCase(p.getPaymentStatus()))
-                .toList();
-        String pendingHtml = pendingTasks.stream()
-                .map(p -> "<li>PurchaseID: " + p.getPurchaseId() + ", Customer: " + p.getCustomer().getCustomerName() +
-                        ", Status: " + p.getOrderStatus() + ", Payment: " + p.getPaymentStatus() + "</li>")
-                .collect(Collectors.joining("\n"));
+        // Customers visited today (distinct)
+        long customersVisited = todaysPurchases.stream()
+                .map(p -> p.getCustomer().getId())
+                .distinct()
+                .count();
 
-        // Payment summary
+        // Number of Transactions
+        long totalTransactions = todaysPurchases.size();
+
+        // Number of Sales Lodged
+        long salesLodged = todaysPurchases.size();
+
+        // Payment summary grouping
         Map<String, List<CustomerPurchases>> paymentGrouped = todaysPurchases.stream()
                 .collect(Collectors.groupingBy(p -> p.getPaymentMethod().toUpperCase()));
 
@@ -70,65 +77,128 @@ public class SalesReportServiceImpl {
 
         // HTML Template
         String htmlTemplate = """
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f4f6f8; }
-                .container { max-width:600px; margin:20px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-                h2 { color:#333; }
-                table { width:100%%; border-collapse:collapse; margin-bottom:20px; }
-                th, td { border:1px solid #ddd; padding:10px; text-align:left; }
-                th { background-color:#f4f4f4; }
-                ul { padding-left:20px; }
-                @media only screen and (max-width:600px) {
-                  .container { padding:15px; }
-                  th, td { padding:8px; }
-                }
-                </style>
-                </head>
-                <body>
-                <div class="container">
-                <h2>Daily Sales Report - %s</h2>
-                <p><strong>Total Income:</strong> ₹%.2f</p>
-                <p><strong>Total Balance:</strong> ₹%.2f</p>
-                <p><strong>Customers Visited:</strong> %d</p>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #eef1f4;
+                margin: 0;
+                padding: 0;
+            }
+            .header {
+                background-color: #1a237e;
+                color: #fff;
+                text-align: center;
+                padding: 14px 0;
+                font-size: 20px;
+                font-weight: bold;
+            }
+            .container {
+                max-width: 650px;
+                background: #fff;
+                margin: 25px auto;
+                padding: 25px;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+            .stat-box {
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                margin-top: 15px;
+            }
+            .stat {
+                background:#f7f9fc;
+                border-radius: 10px;
+                padding: 15px;
+                width: 48%%;
+                margin-bottom: 10px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            }
+            .stat p {
+                margin: 5px 0;
+                font-size: 14px;
+                color: #444;
+            }
+            .label {
+                font-weight: 600;
+                color:#1a237e;
+            }
+            table {
+                width: 100%%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            th {
+                background-color: #1a237e;
+                color: #fff;
+                padding: 10px;
+            }
+            td {
+                border: 1px solid #ddd;
+                padding: 10px;
+                font-size: 14px;
+            }
+            tr:nth-child(even){
+                background-color:#f2f4f7;
+            }
+        </style>
+        </head>
+        <body>
 
-                <h3>Pending Tasks (%d)</h3>
-                <ul>
-                %s
-                </ul>
+        <div class="header">
+            Daily Sales Report - %s
+        </div>
 
-                <h3>Payments Summary</h3>
-                <table>
+        <div class="container">
+            
+            <div class="stat-box">
+                <div class="stat"><p class="label">Total Revenue:</p> <p>₹%.2f</p></div>
+                <div class="stat"><p class="label">Total Balance:</p> <p>₹%.2f</p></div>
+                <div class="stat"><p class="label">Customers Visited:</p> <p>%d</p></div>
+                <div class="stat"><p class="label">Total Transactions:</p> <p>%d</p></div>
+                <div class="stat"><p class="label">Sales Lodged:</p> <p>%d</p></div>
+            </div>
+
+            <h3 style="color:#1a237e; margin-top:25px;">Payments Summary</h3>
+
+            <table>
                 <tr>
-                <th>Payment Method</th>
-                <th>Count</th>
-                <th>Amount</th>
+                    <th>Payment Method</th>
+                    <th>Count</th>
+                    <th>Amount</th>
                 </tr>
                 %s
-                </table>
-                </div>
-                </body>
-                </html>
-                """;
+            </table>
+
+        </div>
+        </body>
+        </html>
+        """;
+
 
         String htmlContent = String.format(htmlTemplate,
                 today,
-                totalIncome,
+                totalRevenue,
                 totalBalance,
                 customersVisited,
-                pendingTasks.size(),
-                pendingHtml,
+                totalTransactions,
+                salesLodged,
                 paymentDetails.toString()
         );
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String formattedDate = today.format(dateTimeFormatter);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String formattedDate = today.format(formatter);
+
         log.info("Sending mail with Daily Sales Report");
-        emailService.sendEmail("itschinmayd@gmail.com", "Testing report" +formattedDate, htmlContent);
+        emailService.sendEmail("itschinmayd@gmail.com",
+                "Daily Sales Report " + formattedDate,
+                htmlContent);
 
         log.info("Email sent successfully");
     }
+
 }
