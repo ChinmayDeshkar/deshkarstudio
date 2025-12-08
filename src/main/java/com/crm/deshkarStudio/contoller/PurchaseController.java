@@ -2,25 +2,20 @@ package com.crm.deshkarStudio.contoller;
 
 import com.crm.deshkarStudio.dto.PurchaseDetailsDTO;
 import com.crm.deshkarStudio.dto.PurchaseUpdateRequest;
-import com.crm.deshkarStudio.dto.RevenueDTO;
 import com.crm.deshkarStudio.dto.TaskDTO;
 import com.crm.deshkarStudio.model.CustomerPurchases;
-import com.crm.deshkarStudio.repo.CustomerPurchasesRepo;
 import com.crm.deshkarStudio.services.NoteService;
 import com.crm.deshkarStudio.services.PurchaseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.config.Task;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -46,6 +41,13 @@ public class PurchaseController {
     @GetMapping("/cust-id/{id}")
     public ResponseEntity<List<TaskDTO>> getPurchaseByCustId(@PathVariable long id) {
         List<TaskDTO> dto = purchaseService.getPurchaseByCustId(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/cust-name/{name}")
+    public ResponseEntity<List<TaskDTO>> getPurchaseByCustName ( @PathVariable String name){
+        List<TaskDTO> dto = purchaseService.getPurchaseByCustName(name);
+
         return ResponseEntity.ok(dto);
     }
 

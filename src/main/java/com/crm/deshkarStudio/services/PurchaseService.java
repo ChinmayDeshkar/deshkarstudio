@@ -22,6 +22,8 @@ public interface PurchaseService {
 
     List<TaskDTO> getPurchaseByCustId(long id);
 
+    List<TaskDTO> getPurchaseByCustName(String name);
+
     List<TaskDTO> getPurchaseByPhoneNumber(String phoneNumber);
 
     List<TaskDTO> getTodayPurchases() ;

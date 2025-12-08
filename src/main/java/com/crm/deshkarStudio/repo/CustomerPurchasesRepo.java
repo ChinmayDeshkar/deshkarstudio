@@ -67,6 +67,9 @@ public interface CustomerPurchasesRepo extends JpaRepository<CustomerPurchases, 
 
     List<CustomerPurchases> findByCustomerId(long customerId);
 
+    @Query("SELECT c FROM CustomerPurchases c WHERE LOWER(c.customer.customerName) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<CustomerPurchases> findByCustomerName(@Param("name") String name);
+
     @Query("SELECT c FROM CustomerPurchases c WHERE c.createdDate >= :start AND c.createdDate < :end")
     List<CustomerPurchases> findTodaysPurchases(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
