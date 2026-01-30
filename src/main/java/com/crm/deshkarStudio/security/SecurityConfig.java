@@ -61,7 +61,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             @Value("${app.cors.allowed-origins}")
-            String allowedOrigins
+            String[] allowedOrigins
     ) throws Exception {
 
         JwtAuthFilter jwtFilter = new JwtAuthFilter(jwtUtil, userDetailsService);
@@ -83,7 +83,7 @@ public class SecurityConfig {
 
         // CORS configuration (Angular 14-friendly)
         CorsConfiguration cors = new CorsConfiguration();
-        cors.addAllowedOrigin(allowedOrigins);
+        cors.setAllowedOrigins(Arrays.asList(allowedOrigins));
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(Arrays.asList(
                 "Authorization",

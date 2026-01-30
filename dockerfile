@@ -29,7 +29,7 @@ COPY --from=builder /app/target/*.jar app.jar
 
 # Set environment variables
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV PORT=8080
+# ENV PORT=8080
 
 # Expose the port that Spring Boot runs on
 EXPOSE 8080
