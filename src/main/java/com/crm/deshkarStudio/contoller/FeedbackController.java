@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/feedback")
+@RequestMapping("/api/feedback")
 @AllArgsConstructor
 public class FeedbackController {
 
